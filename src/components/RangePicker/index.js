@@ -1,10 +1,13 @@
 export default class RangePicker {
+  date = new Date();
+
   constructor({
-    from = new Date(),
-    to = new Date(),
-  }) {
+    from = new Date(this.date.getFullYear(), this.date.getMonth() - 1, this.date.getDate()),
+    to = new Date(this.date.getFullYear(), this.date.getMonth(), this.date.getDate(), 23, 59, 59),
+  } = {}) {
     const year = from.getFullYear();
     const month = from.getMonth();
+    const day = from.getDate();
   
     this.from = new Date(year, month, 1);
     this.to = new Date(year, month + 1, 1);
@@ -43,7 +46,7 @@ export default class RangePicker {
   }
   
     toggleCalendar = () => {
-      this.element.classList.toggle('rangepicker_open');    
+      this.element.classList.toggle('rangepicker_open');
       this.isCalendarOpen = !this.isCalendarOpen;
       this.subElements.selector.innerHTML = this.selectorTemplate();
     }
@@ -56,7 +59,9 @@ export default class RangePicker {
         event.target.classList.add('rangepicker__selected-from');
       } else {
         event.target.classList.add('rangepicker__selected-to');
-        const valueTo = new Date(event.target.dataset.value);
+        const date = new Date(event.target.dataset.value); 
+        const valueTo = new Date(date.setHours(23, 59, 59));
+
         if (Number(this.selectedDates.from) > Number(valueTo)) {
           this.selectedDates.to = this.selectedDates.from;
           this.selectedDates.from = valueTo;
@@ -65,9 +70,13 @@ export default class RangePicker {
         }
         
         this.subElements.input.innerHTML = this.inputTemplate();
-        this.element.dispatchEvent(new CustomEvent('date-select'), {bubles: true});
+        this.element.dispatchEvent(new CustomEvent('date-select', {
+          bubbles: true,
+          detail: this.selectedDates
+        }));
         this.toggleCalendar();
       }
+      console.log(this.selectedDates);
   
       this.subElements.selector.innerHTML = this.selectorTemplate();
     }
@@ -111,8 +120,6 @@ export default class RangePicker {
         const getClassName = () => {
           const currentSeconds = Number(dateOfDay);
           let className = "rangepicker__cell";
-
-          console.log('Im here', new Date(currentSeconds), new Date(secondsFrom));
   
           if (currentSeconds > secondsFrom && currentSeconds < secondsTo) {className += ' rangepicker__selected-between';}
           else if (currentSeconds === secondsFrom) {className += ' rangepicker__selected-from';}

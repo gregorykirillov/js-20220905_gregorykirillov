@@ -65,7 +65,7 @@ export default class RangePicker {
       }
       
       this.subElements.input.innerHTML = this.inputTemplate();
-      this.element.dispatchEvent(new CustomEvent('date-select'), {bubles: true});
+      this.element.dispatchEvent(new CustomEvent('date-select'), {bubbles: true});
       this.toggleCalendar();
     }
 
