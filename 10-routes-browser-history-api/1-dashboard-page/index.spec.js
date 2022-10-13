@@ -43,6 +43,7 @@ describe('routes-browser-history-api/dashboard-page', () => {
 
   it('should render "salesChart" component', () => {
     const { salesChart } = dashboardPage.subElements;
+    console.log(1122, salesChart);
 
     expect(salesChart).toBeVisible();
     expect(salesChart).toBeInTheDocument();

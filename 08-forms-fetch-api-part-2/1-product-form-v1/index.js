@@ -253,7 +253,7 @@ export default class ProductForm {
 
   categoriesTemplate() {
     return this.categories.map(category => 
-      category.subcategories.map(subcategory => 
+      category.subcategories?.map(subcategory => 
         `<option value="${subcategory.id}">${category.title} > ${subcategory.title}</option>`).join("")
     ).join("");
   }
@@ -261,7 +261,7 @@ export default class ProductForm {
   imagesTemplate(image) {
     return `
     <li class='products-edit__imagelist-item sortable-list__item' style=''>
-      <input type='hidden' name='url' value='https://i.imgur.com/MWorX2R.jpg'>
+      <input type='hidden' name='url' value='${image.url}'>
       <input type='hidden' name='source' value='${image.source}'>
       <span>
         <img src='icon-grab.svg' data-grab-handle='' alt='grab'>
@@ -316,15 +316,10 @@ export default class ProductForm {
     }
     return res;
   }
-  
-  removeEventListeners() {
-    document.removeEventListener("click", this.handleClick);
-  }
 
   remove() {
     this.element?.remove();
     this.subElements = {};
-    this.removeEventListeners();
     this.fileInput = null;
   }
 

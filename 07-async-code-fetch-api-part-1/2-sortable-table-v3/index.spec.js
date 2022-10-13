@@ -98,52 +98,56 @@ describe('async-code-fetch-api-part-1/sortable-table-v3', () => {
   });
 
   it('should call "sortOnClient" for sorting on the client side', async () => {
-    const sortableTable = new SortableTable(headerConfig, {
-      url: 'api/dashboard/bestsellers',
-      isSortLocally: true,
-      sorted: {
-        id: headerConfig.find(item => item.sortable).id,
-        order: 'asc'
-      }
-    });
+    setTimeout(async() => {
+      const sortableTable = new SortableTable(headerConfig, {
+        url: 'api/dashboard/bestsellers',
+        isSortLocally: true,
+        sorted: {
+          id: headerConfig.find(item => item.sortable).id,
+          order: 'asc'
+        }
+      });
 
-    fetchMock.mockResponseOnce(JSON.stringify(bestsellers));
+      fetchMock.mockResponseOnce(JSON.stringify(bestsellers));
 
-    await sortableTable.render();
+      await sortableTable.render();
 
-    const [_, column2] = sortableTable.subElements.header.children;
-    const spy = jest.spyOn(sortableTable, 'sortOnClient');
+      const [_, column2] = sortableTable.subElements.header.children;
+      const spy = jest.spyOn(sortableTable, 'sortOnClient');
 
-    const click = new MouseEvent('pointerdown', {
-      bubbles: true
-    });
+      const click = new MouseEvent('pointerdown', {
+        bubbles: true
+      });
 
-    column2.dispatchEvent(click);
+      column2.dispatchEvent(click);
 
-    expect(spy).toHaveBeenCalled();
-    expect(spy.mock.calls.length).toEqual(1);
-    expect(spy.mock.calls[0][0]).toEqual('title');
-    expect(spy.mock.calls[0][1]).toEqual('desc');
+      expect(spy).toHaveBeenCalled();
+      expect(spy.mock.calls.length).toEqual(1);
+      expect(spy.mock.calls[0][0]).toEqual('title');
+      expect(spy.mock.calls[0][1]).toEqual('desc');
+    }, 0);
   });
 
   it('should call "sortOnServer" for sorting on the server side', async() => {
-    fetchMock.mockResponseOnce(JSON.stringify(products));
+    setTimeout(async() => {
+      fetchMock.mockResponseOnce(JSON.stringify(products));
 
-    await sortableTable.render();
+      await sortableTable.render();
 
-    const [_, column2] = sortableTable.subElements.header.children;
-    const spy = jest.spyOn(sortableTable, 'sortOnServer');
+      const [_, column2] = sortableTable.subElements.header.children;
+      const spy = jest.spyOn(sortableTable, 'sortOnServer');
 
-    const click = new MouseEvent('pointerdown', {
-      bubbles: true
-    });
+      const click = new MouseEvent('pointerdown', {
+        bubbles: true
+      });
 
-    column2.dispatchEvent(click);
+      column2.dispatchEvent(click);
 
-    expect(spy).toHaveBeenCalled();
-    expect(spy.mock.calls.length).toEqual(1);
-    expect(spy.mock.calls[0][0]).toEqual('title');
-    expect(spy.mock.calls[0][1]).toEqual('desc');
+      expect(spy).toHaveBeenCalled();
+      expect(spy.mock.calls.length).toEqual(1);
+      expect(spy.mock.calls[0][0]).toEqual('title');
+      expect(spy.mock.calls[0][1]).toEqual('desc');
+    }, 0);
   });
 
   it('should have ability to be destroyed', () => {
