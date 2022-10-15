@@ -14,6 +14,7 @@ module.exports = {
       serveIndex: true,
       watch: true,
     },
+    historyApiFallback: true,
     allowedHosts: "all",
   },
   module: {

@@ -37,7 +37,7 @@ export default class RangePicker {
   
   getSubElements() {
     const res = {};
-    const elements = this.element.querySelectorAll("[data-element]");
+    const elements = this.element.querySelectorAll('[data-element]');
   
     for (const subElement of elements) {
       res[subElement.dataset.element] = subElement;
@@ -76,7 +76,6 @@ export default class RangePicker {
         }));
         this.toggleCalendar();
       }
-      console.log(this.selectedDates);
   
       this.subElements.selector.innerHTML = this.selectorTemplate();
     }
@@ -108,8 +107,12 @@ export default class RangePicker {
     }
   
     getMonthCells(date) {
-      const secondsFrom = Number(this.selectedDates.from);
-      const secondsTo = Number(this.selectedDates.to);
+      const dateFrom = new Date(this.selectedDates.from);
+      const dateTo = new Date(this.selectedDates.to);
+
+      const secondsFrom = Number(dateFrom.setHours(0, 0, 0, 0));
+      const secondsTo = Number(dateTo.setHours(0, 0, 0, 0));
+
       const year = date.getFullYear();
       let month = date.getMonth();
       const lastDay = new Date(year, month + 1, 0).getDate();
@@ -119,7 +122,7 @@ export default class RangePicker {
   
         const getClassName = () => {
           const currentSeconds = Number(dateOfDay);
-          let className = "rangepicker__cell";
+          let className = 'rangepicker__cell';
   
           if (currentSeconds > secondsFrom && currentSeconds < secondsTo) {className += ' rangepicker__selected-between';}
           else if (currentSeconds === secondsFrom) {className += ' rangepicker__selected-from';}

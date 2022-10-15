@@ -1,6 +1,5 @@
 import fetchJson from '../../utils/fetch-json';
-
-const BACKEND_URL = 'https://course-js.javascript.ru/api';
+import { BACKEND_URL } from '../../utils/settings';
 
 export default class ColumnChart {
   chartHeight = 50;
@@ -31,8 +30,8 @@ export default class ColumnChart {
   getNewData() {
     const url = new URL(this.url);
     
-    url.searchParams.append("from", this.range.from.toISOString());
-    url.searchParams.append("to", this.range.to.toISOString());
+    url.searchParams.set('from', this.range.from.toISOString());
+    url.searchParams.set('to', this.range.to.toISOString());
 
     return fetchJson(url).then(res => res);
   }
@@ -41,14 +40,14 @@ export default class ColumnChart {
     return `
       <div class='column-chart column-chart_loading'>
         <div class='column-chart__title'>
-          Total ${this.label}
+          ${this.label}
           ${this.link ? this.templateLink : ''}
         </div>
         <div class='column-chart__container'>
-          <div data-element="header" class="column-chart__header">
+          <div data-element='header' class='column-chart__header'>
             ${this.heading}
           </div>
-          <div data-element="body" class="column-chart__chart">
+          <div data-element='body' class='column-chart__chart'>
             ${this.renderColumns()}
           </div>
         </div>
@@ -58,7 +57,7 @@ export default class ColumnChart {
   get templateLink() {
     return this.link
       ? `<a class='column-chart__link' href=${this.link}>
-          View all
+          Подробнее
         </a>`
       : '';
   }
@@ -76,12 +75,12 @@ export default class ColumnChart {
     header.innerHTML = this.calcHeadingValues();
 
     if (this.tableValues.length) {
-      this.element.classList.remove("column-chart_loading");
+      this.element.classList.remove('column-chart_loading');
     }
   }
 
   async render() {
-    const el = document.createElement("div");
+    const el = document.createElement('div');
     el.innerHTML = this.templateColumnChart;
     this.element = el.firstElementChild;
 
@@ -95,7 +94,7 @@ export default class ColumnChart {
   }
 
   renderColumns() {
-    if (!this.tableValues.length) {return;}
+    if (!this.tableValues.length) {return '';}
 
     const max = Math.max(...this.tableValues);
     const scale = this.chartHeight / max;
@@ -108,12 +107,12 @@ export default class ColumnChart {
       el.dataset['tooltip'] = precent;
 
       return el.outerHTML;
-    }).join("");
+    }).join('');
   }
 
   getSubElements() {
     const subElements = {};
-    const elements = this.element.querySelectorAll("[data-element]");
+    const elements = this.element.querySelectorAll('[data-element]');
 
     for (const subElement of elements) {
       const name = subElement.dataset.element;
@@ -124,11 +123,15 @@ export default class ColumnChart {
   }
 
   async update(from, to) {
+    this.element.classList.add('column-chart_loading');
+
     this.range = { from, to };
     this.data = await this.getNewData();
     this.tableValues = Object.values(this.data);
     this.renderSubElements();
 
+    this.element.classList.remove('column-chart_loading');
+    
     return this.data;
   }
 

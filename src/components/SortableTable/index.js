@@ -1,9 +1,8 @@
 import fetchJson from '../../utils/fetch-json';
-
-const BACKEND_URL = 'https://course-js.javascript.ru';
+import { BACKEND_URL } from '../../utils/settings';
 
 export default class SortableTable {
-  PAGINATION_COUNT = 20;
+  PAGINATION_COUNT = 30;
   BOTTOM_GAP = 50;
   isLoading = false;
   allLoaded = false;
@@ -18,11 +17,16 @@ export default class SortableTable {
     },
     isSortLocally = false,
     url = '',
+    date = new Date(),
+    from = new Date(date.getFullYear(), date.getMonth() - 1, date.getDate()),
+    to = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59),
   } = {}) {
     this.headerConfig = headerConfig;
     this.isSortLocally = isSortLocally;
     this.sorted = sorted;
     this.url = new URL(url, BACKEND_URL);
+    this.from = from;
+    this.to = to;
 
     this.render();
   }
@@ -57,6 +61,9 @@ export default class SortableTable {
       this.url.searchParams.set('_sort', this.sorted.id);
       this.url.searchParams.set('_order', this.sorted.order);
     }
+
+    this.url.searchParams.set('from', this.from.toISOString());
+    this.url.searchParams.set('to', this.to.toISOString());
     this.url.searchParams.set('_start', this.paginationStart);
     this.url.searchParams.set('_end', this.paginationStart + this.PAGINATION_COUNT);
     const data = await fetchJson(this.url);
@@ -88,7 +95,7 @@ export default class SortableTable {
         return direction * (a[id] - b[id]);
       }
       else if (sortType === 'string') {
-        return direction * a[id].localeCompare(b[id], ["ru", "en"], { caseFirst: 'upper' });
+        return direction * a[id].localeCompare(b[id], ['ru', 'en'], { caseFirst: 'upper' });
       }
     });
 
@@ -137,11 +144,11 @@ export default class SortableTable {
   headerColTemplate({id, title, sortable}) {
     const isSortedCell = id === this.sorted.id;
     const [dataOrder, elementOfSort] = isSortedCell
-      ? [`data-order="${this.sorted.order}"`, this.getArrowSort()]
+      ? [`data-order='${this.sorted.order}'`, this.getArrowSort()]
       : ['', ''];
 
     return `
-      <div class="sortable-table__cell" data-id="${id}" data-sortable="${sortable}" ${dataOrder}>
+      <div class='sortable-table__cell' data-id='${id}' data-sortable='${sortable}' ${dataOrder}>
         <span>${title}</span>
         ${elementOfSort}
       </div>`;
@@ -151,33 +158,34 @@ export default class SortableTable {
     const columns = this.headerConfig.map(el => el.id);
 
     return this.data.map(el => `
-    <a href="/products/${el.id}" class="sortable-table__row">
+    <a href='/products/${el.id}' class='sortable-table__row'>
 
-      ${columns.map(col => col === 'images'
-    ? this.headerConfig[0].template(el[col])
-    : `<div class="sortable-table__cell">${el[col]}</div>`
+      ${columns.map((col, ind) => this.headerConfig[ind].template
+    ? this.headerConfig[ind].template(el[col])
+    : `<div class='sortable-table__cell'>${el[col]}</div>`
   ).join('')}
     </a>`).join('');
   }
   
   get template() {
     return `
-    <div data-element="productsContainer" class="products-list__container">
-      <div class="sortable-table">
-      <div data-element="header" class="sortable-table__header sortable-table__row">
+    <div data-element='productsContainer' class='products-list__container'>
+      <div class='sortable-table'>
+      <div data-element='header' class='sortable-table__header sortable-table__row'>
         ${this.headerTemplate}
       </div>
-      <div data-element="body" class="sortable-table__body">
+      <div data-element='body' class='sortable-table__body'>
         ${this.bodyProducts}
       </div>
+      <div data-elem="loading" class="loading-line sortable-table__loading-line"></div>
       </div>
     </div>`;
   }
 
   getArrowSort() {
     return (
-      `<span data-element="arrow" class="sortable-table__sort-arrow">
-        <span class="sort-arrow"></span>
+      `<span data-element='arrow' class='sortable-table__sort-arrow'>
+        <span class='sort-arrow'></span>
       </span>`
     );
   }
@@ -214,7 +222,7 @@ export default class SortableTable {
     body.innerHTML = this.bodyProducts;
     
     if (this.data.length) {
-      this.element.classList.remove("column-chart_loading");
+      this.element.classList.remove('column-chart_loading');
     }
   }
 
@@ -229,7 +237,7 @@ export default class SortableTable {
 
   getSubElements() {
     const res = {};
-    const elements = this.element.querySelectorAll("[data-element]");
+    const elements = this.element.querySelectorAll('[data-element]');
 
     for (const subElement of elements) {
       res[subElement.dataset.element] = subElement;
