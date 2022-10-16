@@ -1,5 +1,5 @@
 import fetchJson from '@/utils/fetch-json';
-import { BACKEND_URL, RANGE } from '@/utils/settings';
+import { BACKEND_URL, CLEAR_FILTERS_EVENT, RANGE } from '@/utils/settings';
 import EmptyPlaceholder from '../EmptyPlaceholder';
 
 export default class SortableTable {
@@ -251,7 +251,7 @@ export default class SortableTable {
   }
 
   onClearFiltersClick = () => {
-    this.element.dispatchEvent(new CustomEvent('clear-filters', {
+    this.element.dispatchEvent(new CustomEvent(CLEAR_FILTERS_EVENT, {
       bubbles: true,
     }));
   }

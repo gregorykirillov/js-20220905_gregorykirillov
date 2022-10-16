@@ -1,7 +1,7 @@
 import {RangePicker, SortableTable, ColumnChart} from '@/components';
 
 import fetchJson from '@/utils/fetch-json';
-import { API_URL_DASHBOARD, BACKEND_URL, RANGE } from '@/utils/settings';
+import { API_URL_DASHBOARD, BACKEND_URL, DATE_SELECT_EVENT, RANGE } from '@/utils/settings';
 
 const header = [
   {
@@ -197,7 +197,7 @@ export default class Page {
   }
 
   setEventListeners() {
-    this.element.addEventListener('date-select', this.handleDateSelect);
+    this.element.addEventListener(DATE_SELECT_EVENT, this.handleDateSelect);
   }
 
   remove() {

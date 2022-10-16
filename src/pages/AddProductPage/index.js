@@ -1,5 +1,6 @@
 import {SortableList} from '@/components';
 import fetchJson from '@/utils/fetch-json.js';
+import { PRODUCT_SAVED_EVENT, PRODUCT_UPDATED_EVENT } from '@/utils/settings';
 
 const IMGUR_CLIENT_ID = '28aaa2e823b03b1';
 const IMGUR_URL = 'https://api.imgur.com/3/image';
@@ -63,7 +64,7 @@ export default class ProductForm {
         }
       });
 
-      const eventType = this.modeIsUpdate ? "product-updated" : "product-saved";
+      const eventType = this.modeIsUpdate ? PRODUCT_UPDATED_EVENT : PRODUCT_SAVED_EVENT;
       this.element.dispatchEvent(
         new CustomEvent(eventType, {
           bubbles: true,
@@ -184,7 +185,17 @@ export default class ProductForm {
     this.data = data[0];
   }
 
+  checkID() {
+    const lastPath = window.location.pathname.split('/').at(-1);
+    if (lastPath !== 'add' && lastPath !== 'products') {
+      this.productId = lastPath;
+      this.modeIsUpdate = true;
+    }
+  }
+
   async render() {
+    this.checkID();
+
     await Promise.all([
       this.getData(),
       this.getCategories(),
@@ -233,9 +244,9 @@ export default class ProductForm {
   template() {
     return `
     <div class='product-form'>
-    <h1 class="page-title">
-      <a href="/products" class="link">Товары</a> / Добавить
-    </h1>
+      <h1 class="page-title">
+        <a href="/products" class="link">Товары</a> / ${this.modeIsUpdate ? 'Редактировать' : 'Добавить'}
+      </h1>
       ${this.formTemplate}
     </div>`;
   }
@@ -287,7 +298,7 @@ export default class ProductForm {
       </div>
       <div class='form-buttons'>
         <button type='submit' name='save' class='button-primary-outline'>
-          Сохранить товар
+          ${this.modeIsUpdate ? 'Сохранить товар' : 'Добавить товар'}
         </button>
       </div>
     </form>`;
@@ -307,12 +318,12 @@ export default class ProductForm {
       <input type='hidden' name='url' value='${image.url}'>
       <input type='hidden' name='source' value='${image.source}'>
       <span>
-        <img src='icon-grab.svg' data-grab-handle='' alt='grab'>
+        <img src='../assets/icons/icon-grab.svg' data-grab-handle='' alt='grab'>
         <img class='sortable-table__cell-img' alt='Image' src='${image.url}'>
         <span>${image.source}</span>
       </span>
       <button type='button'>
-        <img src='icon-trash.svg' data-delete-handle='' alt='delete'>
+        <img src='../../assets/icons/icon-trash.svg' data-delete-handle='' alt='delete'>
       </button>
     </li>`;
   }

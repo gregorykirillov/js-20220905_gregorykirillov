@@ -1,4 +1,4 @@
-import { RANGE } from "@/utils/settings";
+import { CLEAR_FILTERS_EVENT, DATE_SELECT_EVENT, RANGE } from "@/utils/settings";
 
 export default class RangePicker {
   date = new Date();
@@ -35,7 +35,7 @@ export default class RangePicker {
   setEnentListeners() {
     this.subElements.input.addEventListener('click', this.toggleCalendar);
     this.subElements.selector.addEventListener('click', this.handleClickSelector);
-    document.addEventListener('clear-filters', this.handleClearFilters);
+    document.addEventListener(CLEAR_FILTERS_EVENT, this.handleClearFilters);
   }
 
   handleClearFilters = () => {
@@ -52,7 +52,7 @@ export default class RangePicker {
 
   update() {
     this.subElements.input.innerHTML = this.inputTemplate();
-    this.element.dispatchEvent(new CustomEvent('date-select', {
+    this.element.dispatchEvent(new CustomEvent(DATE_SELECT_EVENT, {
       bubbles: true,
       detail: this.selectedDates
     }));
@@ -221,7 +221,7 @@ export default class RangePicker {
     }
   
     remove() {
-      document.removeEventListener('clear-filters', this.handleClearFilters);
+      document.removeEventListener(CLEAR_FILTERS_EVENT, this.handleClearFilters);
       this.element?.remove();
       this.subElements = {};
     }

@@ -114,6 +114,11 @@ export default class Page {
 
     const page = new AddProductPage();
     const renderedPage = await page.render();
+    
+    const content = document.body.querySelector('#content');
+    content.innerHTML = '';
+    content.append(renderedPage);
+    window.history.pushState(null, null, '/products/add');
   }
 
   remove() {

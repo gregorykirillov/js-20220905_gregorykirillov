@@ -1,6 +1,7 @@
 import {AddProductPage, CategoriesPage, DashboardPage, ProductPage, SalesPage} from '@/pages';
-import { Tooltip } from '@/components';
+import { Notification, Tooltip } from '@/components';
 import {leftBarTemplate} from './templates';
+import { PRODUCT_SAVED_EVENT, PRODUCT_UPDATED_EVENT } from '@/utils/settings';
 
 export default class Page {
   constructor() {
@@ -38,9 +39,32 @@ export default class Page {
   setEventListeners() {
     document.querySelector('.sidebar__nav').addEventListener('click', this.handleChangePage);
     document.querySelector('button.sidebar__toggler').addEventListener('click', this.handleCollapseSidebar);
+    
+    document.addEventListener(PRODUCT_UPDATED_EVENT, this.handleProduct);
+    document.addEventListener(PRODUCT_SAVED_EVENT, this.handleProduct);
 
     window.addEventListener('load', this.handleLoaded);
+    console.log('load', window.addEventListener('load', this.handleLoaded));
   }
+
+  handleProduct = (event) => {
+    let notify = '';
+    if (event.type === PRODUCT_SAVED_EVENT) {
+      notify = new Notification('Продукт успешно создан', {duration: 2000});
+    } else if (event.type === PRODUCT_UPDATED_EVENT) {
+      notify = new Notification('Продукт успешно сохранен', {duration: 2000});
+    }
+
+    notify.show();
+
+    document.body.append(notify.element);
+  }
+
+  // handleStateChanged = (event) => {
+  //   const state = event.srcElement.readyState;
+  //   console.log(state);
+  //   if (state === 'complete') {this.handleLoaded();}
+  // }
 
   handleLoaded = () => {
     this.switchProgressBar('off');
@@ -71,7 +95,11 @@ export default class Page {
   setButtonActive(event = null) {
     let button;
     if (!event) {
-      const path = window.location.pathname.slice(1) || 'dashboard';
+      let path = window.location.pathname.slice(1) || 'dashboard';
+      
+      if (path.includes('products')) {
+        path = 'products';
+      }
 
       button = document.querySelector(`[data-page="${path}"]`).closest('li');
     } else {
