@@ -1,5 +1,5 @@
-import fetchJson from '../../utils/fetch-json';
-import { BACKEND_URL } from '../../utils/settings';
+import fetchJson from '@/utils/fetch-json';
+import { BACKEND_URL } from '@/utils/settings';
 
 export default class ColumnChart {
   chartHeight = 50;

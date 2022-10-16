@@ -18,6 +18,11 @@ module.exports = {
     historyApiFallback: true,
     allowedHosts: "all",
   },
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, "src"),
+    }
+  },
   module: {
     rules: [
       {

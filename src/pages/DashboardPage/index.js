@@ -1,7 +1,7 @@
-import {RangePicker, SortableTable, ColumnChart} from '../../components';
+import {RangePicker, SortableTable, ColumnChart} from '@/components';
 
-import fetchJson from '../../utils/fetch-json';
-import { API_URL_DASHBOARD, BACKEND_URL, RANGE } from '../../utils/settings';
+import fetchJson from '@/utils/fetch-json';
+import { API_URL_DASHBOARD, BACKEND_URL, RANGE } from '@/utils/settings';
 
 const header = [
   {
@@ -49,7 +49,10 @@ const header = [
     id: 'price',
     title: 'Цена',
     sortable: true,
-    sortType: 'number'
+    sortType: 'number',
+    template: price => `<div class="sortable-table__cell">
+      ${new Intl.NumberFormat('en-US', {style: 'currency', currency: 'USD', maximumFractionDigits: 0}).format(price)}
+    </div>`
   },
   {
     id: 'sales',

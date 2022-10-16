@@ -1,5 +1,5 @@
-import {SortableList} from '../../components';
-import fetchJson from '../../utils/fetch-json.js';
+import {SortableList} from '@/components';
+import fetchJson from '@/utils/fetch-json.js';
 
 const IMGUR_CLIENT_ID = '28aaa2e823b03b1';
 const IMGUR_URL = 'https://api.imgur.com/3/image';
@@ -233,6 +233,9 @@ export default class ProductForm {
   template() {
     return `
     <div class='product-form'>
+    <h1 class="page-title">
+      <a href="/products" class="link">Товары</a> / Добавить
+    </h1>
       ${this.formTemplate}
     </div>`;
   }

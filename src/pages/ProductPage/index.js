@@ -1,5 +1,6 @@
-import {SortableTable} from '../../components';
-import { API_URL_DASHBOARD } from '../../utils/settings';
+import {SortableTable} from '@/components';
+import {AddProductPage} from '@/pages';
+import { API_URL_DASHBOARD } from '@/utils/settings';
 
 const header = [
   {
@@ -27,10 +28,30 @@ const header = [
     sortType: 'number'
   },
   {
+    id: 'subcategory',
+    title: 'Категория',
+    sortable: false,
+    template: subcategory => {
+      return `
+      <div class="sortable-table__cell">
+        <span data-tooltip="
+          <div class='sortable-table-tooltip'>
+            <span class='sortable-table-tooltip__category'>${subcategory.category.title}</span> /
+            <b class='sortable-table-tooltip__subcategory'>${subcategory.title}</b>
+          </div>">
+          ${subcategory.title}
+        </span>
+      </div>`;
+    }
+  },
+  {
     id: 'price',
     title: 'Цена',
     sortable: true,
-    sortType: 'number'
+    sortType: 'number',
+    template: price => `<div class="sortable-table__cell">
+      ${new Intl.NumberFormat('en-US', {style: 'currency', currency: 'USD', maximumFractionDigits: 0}).format(price)}
+    </div>`
   },
   {
     id: 'status',
@@ -78,8 +99,21 @@ export default class Page {
     this.element = element.firstElementChild;
 
     this.appendSortableTable();
+    this.setEventListeners();
   
     return this.element;
+  }
+
+  setEventListeners() {
+    const button = this.element.querySelector('.button-primary');
+    button?.addEventListener('click', this.handleAddProduct);
+  }
+
+  async handleAddProduct(event) {
+    event.preventDefault();
+
+    const page = new AddProductPage();
+    const renderedPage = await page.render();
   }
 
   remove() {

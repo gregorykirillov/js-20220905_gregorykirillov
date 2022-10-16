@@ -1,4 +1,4 @@
-import { RANGE } from "../../utils/settings";
+import { RANGE } from "@/utils/settings";
 
 export default class RangePicker {
   date = new Date();

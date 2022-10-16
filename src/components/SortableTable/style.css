@@ -12,7 +12,7 @@
 
 .sortable-table__row {
   display: grid;
-  grid: auto-flow / 80px calc(50% - 80px) 20% 10% 10% 10%;
+  grid: auto-flow / 100px repeat(auto-fit, minmax(50px, 1fr));
   text-decoration: none;
 }
 .sortable-table__row.bold {

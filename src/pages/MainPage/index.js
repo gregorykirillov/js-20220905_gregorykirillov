@@ -1,5 +1,5 @@
-import {AddProductPage, CategoriesPage, DashboardPage, ProductPage, SalesPage} from '../../pages';
-import { Tooltip } from '../../components';
+import {AddProductPage, CategoriesPage, DashboardPage, ProductPage, SalesPage} from '@/pages';
+import { Tooltip } from '@/components';
 import {leftBarTemplate} from './templates';
 
 export default class Page {
@@ -71,7 +71,8 @@ export default class Page {
   setButtonActive(event = null) {
     let button;
     if (!event) {
-      const path = window.location.pathname.slice(1);
+      const path = window.location.pathname.slice(1) || 'dashboard';
+
       button = document.querySelector(`[data-page="${path}"]`).closest('li');
     } else {
       button = event.target.closest('li');

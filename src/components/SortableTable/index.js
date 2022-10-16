@@ -1,5 +1,5 @@
-import fetchJson from '../../utils/fetch-json';
-import { BACKEND_URL, RANGE } from '../../utils/settings';
+import fetchJson from '@/utils/fetch-json';
+import { BACKEND_URL, RANGE } from '@/utils/settings';
 import EmptyPlaceholder from '../EmptyPlaceholder';
 
 export default class SortableTable {

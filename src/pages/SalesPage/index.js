@@ -1,7 +1,7 @@
-import {RangePicker, SortableTable} from '../../components';
+import {RangePicker, SortableTable} from '@/components';
 
-import fetchJson from '../../utils/fetch-json';
-import { BACKEND_URL, RANGE } from '../../utils/settings';
+import fetchJson from '@/utils/fetch-json';
+import { BACKEND_URL, RANGE } from '@/utils/settings';
 
 const header = [
   {
@@ -54,7 +54,6 @@ export default class Page {
         <h1 class="page-title">Продажи</h1>
         <div data-element="rangePicker"></div>
       </div>
-      <div data-element="productsContainer" class="products-list__container">
     </div>
     `;
   }
@@ -75,8 +74,7 @@ export default class Page {
       ]
     });
     
-    const container = this.element.querySelector('[data-element="productsContainer"]');
-    container.append(this.sortableTable.element);
+    this.element.append(this.sortableTable.element);
   }
 
   getSubElements() { 
