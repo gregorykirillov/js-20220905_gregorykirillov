@@ -1,4 +1,5 @@
 import { MainPage } from './pages';
 import './styles/all.css';
 
-new MainPage();
+const mainPage = new MainPage();
+mainPage.render();

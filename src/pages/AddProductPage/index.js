@@ -370,6 +370,7 @@ export default class ProductForm {
 
   remove() {
     this.element?.remove();
+    this.sortableList.remove();
     this.subElements = {};
     this.fileInput = null;
   }

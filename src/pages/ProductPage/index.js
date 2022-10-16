@@ -1,5 +1,5 @@
 import {SortableTable} from '@/components';
-import {AddProductPage} from '@/pages';
+import {AddProductPage, MainPage} from '@/pages';
 import { API_URL_DASHBOARD } from '@/utils/settings';
 
 const header = [
@@ -116,18 +116,21 @@ export default class Page {
     const renderedPage = await page.render();
     
     const content = document.body.querySelector('#content');
+
+    const mainPage = new MainPage();
+    mainPage.removePreviousPage();
+    
     content.innerHTML = '';
     content.append(renderedPage);
     window.history.pushState(null, null, '/products/add');
   }
 
   remove() {
+    this.sortableTable.remove();
     this.element?.remove();
-    this.removeEventListeners();
   }
 
   destroy() {
     this.remove();
-    this.removeEventListeners();
   }
 }

@@ -232,7 +232,7 @@ export default class SortableTable {
   }
 
   updateData() {
-    if (!this.subElements) {return;}
+    if (!this.subElements || !Object.keys(this.subElements).length) {return;}
     const { body, header } = this.subElements;
 
     header.innerHTML = this.headerTemplate;

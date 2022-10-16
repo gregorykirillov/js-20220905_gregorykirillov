@@ -201,12 +201,15 @@ export default class Page {
   }
 
   remove() {
-    this.element?.remove();
-    this.removeEventListeners();
+    this.rangePicker.remove();
+    this.sortableTable.remove();
+    this.ordersChart.remove();
+    this.salesChart.remove();
+    this.customersChart.remove();
+    this.element.remove();
   }
 
   destroy() {
     this.remove();
-    this.removeEventListeners();
   }
 }

@@ -5,7 +5,13 @@ import { PRODUCT_SAVED_EVENT, PRODUCT_UPDATED_EVENT } from '@/utils/settings';
 
 export default class Page {
   constructor() {
-    this.render();
+    if (!!Page.instance) {
+      return Page.instance;
+    }
+
+    Page.instance = this;
+    
+    return this;
   }
 
   async render() {
@@ -31,6 +37,8 @@ export default class Page {
   async renderPage() {
     const Page = this.getPageByLocation();
     const page = new Page();
+    this.previousPage = page;
+
     const renderedPage = await page.render();
 
     return renderedPage;
@@ -44,7 +52,6 @@ export default class Page {
     document.addEventListener(PRODUCT_SAVED_EVENT, this.handleProduct);
 
     window.addEventListener('load', this.handleLoaded);
-    console.log('load', window.addEventListener('load', this.handleLoaded));
   }
 
   handleProduct = (event) => {
@@ -59,12 +66,6 @@ export default class Page {
 
     document.body.append(notify.element);
   }
-
-  // handleStateChanged = (event) => {
-  //   const state = event.srcElement.readyState;
-  //   console.log(state);
-  //   if (state === 'complete') {this.handleLoaded();}
-  // }
 
   handleLoaded = () => {
     this.switchProgressBar('off');
@@ -111,6 +112,10 @@ export default class Page {
     button.classList.add('active');
   }
 
+  removePreviousPage() {
+    this.previousPage?.remove();
+  }
+
   handleChangePage = async (event) => {
     this.switchProgressBar('on');
     event.preventDefault();
@@ -126,7 +131,9 @@ export default class Page {
     const path = pageButton.dataset.page;
     window.history.pushState(null, null, `/${path}`);
     
+    this.removePreviousPage();
     const renderedPage = await this.renderPage();
+    
     this.content.innerHTML = '';
     this.content.append(renderedPage);
     this.switchProgressBar('off');
@@ -137,14 +144,14 @@ export default class Page {
       '/': DashboardPage,
       '/dashboard': DashboardPage,
       '/products': ProductPage,
+      '/products/': AddProductPage,
       // '/categories': CategoriesPage,
       '/sales': SalesPage,
     };
-    const path = window.location.pathname;
-
-    if (path.includes('/products/')) {
-      return AddProductPage;
-    }
+    const path =
+      window.location.pathname.split('/products/')[1]
+        ? '/products/'
+        : window.location.pathname;
 
     return pages[path];
   }

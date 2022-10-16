@@ -138,11 +138,11 @@ export default class Page {
 
   remove() {
     this.element?.remove();
-    this.removeEventListeners();
+    this.rangePicker.remove();
+    this.sortableTable.remove();
   }
 
   destroy() {
     this.remove();
-    this.removeEventListeners();
   }
 }
