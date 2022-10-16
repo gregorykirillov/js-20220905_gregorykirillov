@@ -95,12 +95,6 @@
   margin: 0 0 12px;
 }
 
-.sortable-table__empty-placeholder,
-.sortable-table_empty .sortable-table__header,
-.sortable-table_empty .sortable-table__body {
-  display: none;
-}
-
 .sortable-table_empty .sortable-table__empty-placeholder {
   background: var(--grey-extra-light);
   border: 1px solid var(--grey-light);

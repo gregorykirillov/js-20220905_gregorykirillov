@@ -1,5 +1,6 @@
 import fetchJson from '../../utils/fetch-json';
-import { BACKEND_URL } from '../../utils/settings';
+import { BACKEND_URL, RANGE } from '../../utils/settings';
+import EmptyPlaceholder from '../EmptyPlaceholder';
 
 export default class SortableTable {
   PAGINATION_COUNT = 30;
@@ -11,20 +12,22 @@ export default class SortableTable {
   data = [];
 
   constructor(headerConfig, {
+    sortedElement = headerConfig.find(el => el.preSorting) || headerConfig.find(el => el.sortable),
     sorted = {
-      id: headerConfig.find(el => el.sortable).id,
-      order: 'asc',
+      id: sortedElement.id,
+      order: sortedElement.order || 'asc',
     },
     isSortLocally = false,
     url = '',
-    date = new Date(),
-    from = new Date(date.getFullYear(), date.getMonth() - 1, date.getDate()),
-    to = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59),
+    urlParams = [],
+    from = RANGE.from,
+    to = RANGE.to,
   } = {}) {
     this.headerConfig = headerConfig;
     this.isSortLocally = isSortLocally;
     this.sorted = sorted;
     this.url = new URL(url, BACKEND_URL);
+    this.urlParams = urlParams;
     this.from = from;
     this.to = to;
 
@@ -62,8 +65,15 @@ export default class SortableTable {
       this.url.searchParams.set('_order', this.sorted.order);
     }
 
-    this.url.searchParams.set('from', this.from.toISOString());
-    this.url.searchParams.set('to', this.to.toISOString());
+    if (this.urlParams.length) {
+      this.urlParams.forEach(param => {
+        this.url.searchParams.set(param.name, param.value);
+      });
+    } else {
+      this.url.searchParams.set('from', this.from.toISOString());
+      this.url.searchParams.set('to', this.to.toISOString());
+    }
+
     this.url.searchParams.set('_start', this.paginationStart);
     this.url.searchParams.set('_end', this.paginationStart + this.PAGINATION_COUNT);
     const data = await fetchJson(this.url);
@@ -104,6 +114,14 @@ export default class SortableTable {
   }
 
   async sortOnServer (id = this.sorted.id, order = this.sorted.order) {
+    if (this.urlParams.length) {
+      this.urlParams.forEach(param => {
+        this.url.searchParams.set(param.name, param.value);
+      });
+    } else {
+      this.url.searchParams.set('from', this.from.toISOString());
+      this.url.searchParams.set('to', this.to.toISOString());
+    }
     this.url.searchParams.set('_sort', id);
     this.url.searchParams.set('_order', order);
 
@@ -177,7 +195,6 @@ export default class SortableTable {
       <div data-element='body' class='sortable-table__body'>
         ${this.bodyProducts}
       </div>
-      <div data-elem="loading" class="loading-line sortable-table__loading-line"></div>
       </div>
     </div>`;
   }
@@ -219,11 +236,24 @@ export default class SortableTable {
     const { body, header } = this.subElements;
 
     header.innerHTML = this.headerTemplate;
-    body.innerHTML = this.bodyProducts;
-    
+    body.innerHTML = this.data.length 
+      ? this.bodyProducts
+      : EmptyPlaceholder;
+      
     if (this.data.length) {
       this.element.classList.remove('column-chart_loading');
     }
+
+    this.subElements = this.getSubElements();
+    if (this.subElements.emptyPlaceholder) {
+      this.subElements.emptyPlaceholder.addEventListener('click', this.onClearFiltersClick);
+    }
+  }
+
+  onClearFiltersClick = () => {
+    this.element.dispatchEvent(new CustomEvent('clear-filters', {
+      bubbles: true,
+    }));
   }
 
   setSorted(id, order) {

@@ -1,3 +1,5 @@
+import { RANGE } from "../../utils/settings";
+
 export default class RangePicker {
   date = new Date();
 
@@ -33,6 +35,27 @@ export default class RangePicker {
   setEnentListeners() {
     this.subElements.input.addEventListener('click', this.toggleCalendar);
     this.subElements.selector.addEventListener('click', this.handleClickSelector);
+    document.addEventListener('clear-filters', this.handleClearFilters);
+  }
+
+  handleClearFilters = () => {
+    this.from = RANGE.from;
+    this.to = RANGE.to;
+
+    this.selectedDates = {
+      from: this.from,
+      to: this.to,
+    };
+
+    this.update();
+  }
+
+  update() {
+    this.subElements.input.innerHTML = this.inputTemplate();
+    this.element.dispatchEvent(new CustomEvent('date-select', {
+      bubbles: true,
+      detail: this.selectedDates
+    }));
   }
   
   getSubElements() {
@@ -49,6 +72,7 @@ export default class RangePicker {
       this.element.classList.toggle('rangepicker_open');
       this.isCalendarOpen = !this.isCalendarOpen;
       this.subElements.selector.innerHTML = this.selectorTemplate();
+      this.subElements = this.getSubElements();
     }
   
     handleSelectDate(event) {
@@ -59,25 +83,20 @@ export default class RangePicker {
         event.target.classList.add('rangepicker__selected-from');
       } else {
         event.target.classList.add('rangepicker__selected-to');
-        const date = new Date(event.target.dataset.value); 
-        const valueTo = new Date(date.setHours(23, 59, 59));
+        const date = new Date(event.target.dataset.value);
 
-        if (Number(this.selectedDates.from) > Number(valueTo)) {
+        if (Number(this.selectedDates.from) > Number(date)) {
           this.selectedDates.to = this.selectedDates.from;
-          this.selectedDates.from = valueTo;
+          this.selectedDates.from = date;
         } else {
-          this.selectedDates.to = valueTo;
+          this.selectedDates.to = date;
         }
+
+        this.selectedDates.to.setHours(23, 59, 59);
         
-        this.subElements.input.innerHTML = this.inputTemplate();
-        this.element.dispatchEvent(new CustomEvent('date-select', {
-          bubbles: true,
-          detail: this.selectedDates
-        }));
+        this.update();
         this.toggleCalendar();
       }
-  
-      this.subElements.selector.innerHTML = this.selectorTemplate();
     }
   
     handleControlMonth(event) {
@@ -95,6 +114,7 @@ export default class RangePicker {
       action[way]();
       
       this.subElements.selector.innerHTML = this.selectorTemplate();
+      this.subElements = this.getSubElements();
     }
   
     handleClickSelector = (event) => {
@@ -201,6 +221,7 @@ export default class RangePicker {
     }
   
     remove() {
+      document.removeEventListener('clear-filters', this.handleClearFilters);
       this.element?.remove();
       this.subElements = {};
     }

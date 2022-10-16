@@ -1,4 +1,4 @@
-import {CategoriesPage, DashboardPage, ProductPage, SalesPage} from '../../pages';
+import {AddProductPage, CategoriesPage, DashboardPage, ProductPage, SalesPage} from '../../pages';
 import { Tooltip } from '../../components';
 import {leftBarTemplate} from './templates';
 
@@ -20,6 +20,7 @@ export default class Page {
 
     const renderedPage = await this.renderPage();
     this.content.append(renderedPage);
+    this.setButtonActive();
     
     this.setEventListeners();
 
@@ -37,9 +38,15 @@ export default class Page {
   setEventListeners() {
     document.querySelector('.sidebar__nav').addEventListener('click', this.handleChangePage);
     document.querySelector('button.sidebar__toggler').addEventListener('click', this.handleCollapseSidebar);
+
+    window.addEventListener('load', this.handleLoaded);
   }
 
-  handleCollapseSidebar() {
+  handleLoaded = () => {
+    this.switchProgressBar('off');
+  }
+
+  handleCollapseSidebar = () => {
     document.body.classList.toggle('is-collapsed-sidebar');
   }
   
@@ -54,13 +61,21 @@ export default class Page {
   }
   
   clearActiveButton(event) {
+    if (!event) {return;}
+
     const buttonsList = event.target.closest('ul');
 
     [...buttonsList.children].forEach(el => el.classList.remove('active'));
   }
 
-  setButtonActive(event) {
-    const button = event.target.closest('li');
+  setButtonActive(event = null) {
+    let button;
+    if (!event) {
+      const path = window.location.pathname.slice(1);
+      button = document.querySelector(`[data-page="${path}"]`).closest('li');
+    } else {
+      button = event.target.closest('li');
+    }
     if (!button) {return;}
 
     this.clearActiveButton(event);
@@ -68,27 +83,39 @@ export default class Page {
   }
 
   handleChangePage = async (event) => {
+    this.switchProgressBar('on');
     event.preventDefault();
 
     this.setButtonActive(event);
 
     const pageButton = event.target.closest('[data-page]');
-    if (!pageButton) {return;}
+    if (!pageButton) {
+      this.switchProgressBar('off');
+      return;
+    }
 
     const path = pageButton.dataset.page;
-    window.history.pushState(null, null, path);
+    window.history.pushState(null, null, `/${path}`);
     
     const renderedPage = await this.renderPage();
     this.content.innerHTML = '';
     this.content.append(renderedPage);
+    this.switchProgressBar('off');
   }
 
   getPageByLocation() {
     const pages = {
       '/': DashboardPage,
-      '/dashboard': DashboardPage
+      '/dashboard': DashboardPage,
+      '/products': ProductPage,
+      // '/categories': CategoriesPage,
+      '/sales': SalesPage,
     };
     const path = window.location.pathname;
+
+    if (path.includes('/products/')) {
+      return AddProductPage;
+    }
 
     return pages[path];
   }

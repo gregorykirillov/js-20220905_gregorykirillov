@@ -2,7 +2,9 @@
 
 /* Styles for components  */
 /* components */
+@import url("../components/EmptyPlaceholder/style.css");
 @import url("../components/SortableTable/style.css");
+@import url("../components/SortableList/style.css");
 @import url("../components/RangePicker/style.css");
 @import url("../components/ColumnChart/style.css");
 @import url("../components/Tooltip/style.css");
@@ -10,3 +12,4 @@
 /* pages */
 @import url("../pages/DashboardPage/style.css");
 @import url("../pages/MainPage/style.css");
+@import url("../pages/AddProductPage/style.css");
