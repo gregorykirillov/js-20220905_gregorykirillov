@@ -9,7 +9,6 @@ export default class RangePicker {
   } = {}) {
     const year = from.getFullYear();
     const month = from.getMonth();
-    const day = from.getDate();
   
     this.from = new Date(year, month, 1);
     this.to = new Date(year, month + 1, 1);
@@ -52,6 +51,7 @@ export default class RangePicker {
 
   update() {
     this.subElements.input.innerHTML = this.inputTemplate();
+    
     this.element.dispatchEvent(new CustomEvent(DATE_SELECT_EVENT, {
       bubbles: true,
       detail: this.selectedDates
@@ -68,90 +68,90 @@ export default class RangePicker {
     return res;
   }
   
-    toggleCalendar = () => {
-      this.element.classList.toggle('rangepicker_open');
-      this.isCalendarOpen = !this.isCalendarOpen;
-      this.subElements.selector.innerHTML = this.selectorTemplate();
-      this.subElements = this.getSubElements();
-    }
+  toggleCalendar = () => {
+    this.element.classList.toggle('rangepicker_open');
+    this.isCalendarOpen = !this.isCalendarOpen;
+    this.subElements.selector.innerHTML = this.selectorTemplate();
+    this.subElements = this.getSubElements();
+  }
   
-    handleSelectDate(event) {
-      if (this.selectedDates.to !== null) {
-        this.selectedDates.from = new Date(event.target.dataset.value);
-        this.selectedDates.to = null;
+  handleSelectDate(event) {
+    if (this.selectedDates.to !== null) {
+      this.selectedDates.from = new Date(event.target.dataset.value);
+      this.selectedDates.to = null;
   
-        event.target.classList.add('rangepicker__selected-from');
+      event.target.classList.add('rangepicker__selected-from');
+    } else {
+      event.target.classList.add('rangepicker__selected-to');
+      const date = new Date(event.target.dataset.value);
+
+      if (Number(this.selectedDates.from) > Number(date)) {
+        this.selectedDates.to = this.selectedDates.from;
+        this.selectedDates.from = date;
       } else {
-        event.target.classList.add('rangepicker__selected-to');
-        const date = new Date(event.target.dataset.value);
+        this.selectedDates.to = date;
+      }
 
-        if (Number(this.selectedDates.from) > Number(date)) {
-          this.selectedDates.to = this.selectedDates.from;
-          this.selectedDates.from = date;
-        } else {
-          this.selectedDates.to = date;
-        }
-
-        this.selectedDates.to.setHours(23, 59, 59);
+      this.selectedDates.to.setHours(23, 59, 59);
         
-        this.update();
-        this.toggleCalendar();
-      }
+      this.update();
+      this.toggleCalendar();
     }
+  }
   
-    handleControlMonth(event) {
-      const action = {
-        left: () => {
-          this.from.setMonth(this.from.getMonth() - 1);
-          this.to.setMonth(this.to.getMonth() - 1);
-        },
-        right: () => {
-          this.from.setMonth(this.from.getMonth() + 1);
-          this.to.setMonth(this.to.getMonth() + 1);
-        }
-      };
-      const way = event.target.className.split('rangepicker__selector-control-')[1];
-      action[way]();
+  handleControlMonth(event) {
+    const action = {
+      left: () => {
+        this.from.setMonth(this.from.getMonth() - 1);
+        this.to.setMonth(this.to.getMonth() - 1);
+      },
+      right: () => {
+        this.from.setMonth(this.from.getMonth() + 1);
+        this.to.setMonth(this.to.getMonth() + 1);
+      }
+    };
+    const way = event.target.className.split('rangepicker__selector-control-')[1];
+    action[way]();
       
-      this.subElements.selector.innerHTML = this.selectorTemplate();
-      this.subElements = this.getSubElements();
+    this.subElements.selector.innerHTML = this.selectorTemplate();
+    this.subElements = this.getSubElements();
+  }
+  
+  handleClickSelector = (event) => {
+    if (event.target.dataset.value) {
+      this.handleSelectDate(event);
     }
-  
-    handleClickSelector = (event) => {
-      if (event.target.dataset.value) {
-        this.handleSelectDate(event);
-      }
-      else if (event.target.className.includes('control')) {
-        this.handleControlMonth(event);
-      }
+    else if (event.target.className.includes('control')) {
+      this.handleControlMonth(event);
     }
+  }
   
-    getMonthCells(date) {
-      const dateFrom = new Date(this.selectedDates.from);
-      const dateTo = new Date(this.selectedDates.to);
+  getMonthCells(date) {
+    const dateFrom = new Date(this.selectedDates.from);
+    const dateTo = new Date(this.selectedDates.to);
 
-      const secondsFrom = Number(dateFrom.setHours(0, 0, 0, 0));
-      const secondsTo = Number(dateTo.setHours(0, 0, 0, 0));
+    const secondsFrom = Number(dateFrom.setHours(0, 0, 0, 0));
+    const secondsTo = Number(dateTo.setHours(0, 0, 0, 0));
 
-      const year = date.getFullYear();
-      let month = date.getMonth();
-      const lastDay = new Date(year, month + 1, 0).getDate();
+    const year = date.getFullYear();
+    let month = date.getMonth();
+    const lastDay = new Date(year, month + 1, 0).getDate();
   
-      return new Array(lastDay).fill().map((_, dayNum) => {
-        const dateOfDay = new Date(year, month, dayNum + 1);
+    return new Array(lastDay).fill().map((_, dayNum) => {
+      const dateOfDay = new Date(year, month, dayNum + 1);
   
-        const getClassName = () => {
-          const currentSeconds = Number(dateOfDay);
-          let className = 'rangepicker__cell';
+      const getClassName = () => {
+        const currentSeconds = Number(dateOfDay);
+        let className = 'rangepicker__cell';
   
-          if (currentSeconds > secondsFrom && currentSeconds < secondsTo) {className += ' rangepicker__selected-between';}
-          else if (currentSeconds === secondsFrom) {className += ' rangepicker__selected-from';}
-          else if (currentSeconds === secondsTo) {className += ' rangepicker__selected-to';}
+        if (currentSeconds > secondsFrom && currentSeconds < secondsTo) {className += ' rangepicker__selected-between';}
+        else if (currentSeconds === secondsFrom) {className += ' rangepicker__selected-from';}
+        else if (currentSeconds === secondsTo) {className += ' rangepicker__selected-to';}
           
-          return className;
-        };
+        return className;
+      };
   
-        return `
+      return `
         <button
           type="button"
           class="${getClassName()}"
@@ -161,73 +161,73 @@ export default class RangePicker {
           ${dayNum + 1}
         </button>
         `;
-      }).join("");
-    }
+    }).join("");
+  }
   
-    getDayNames() {
-      return new Array(7).fill().map((_, dayInd) => {
-        const date = new Date(2022, 9, dayInd + 3); // 3 Oct 2022 is Monday.
+  getDayNames() {
+    return new Array(7).fill().map((_, dayInd) => {
+      const date = new Date(2022, 9, dayInd + 3); // 3 Oct 2022 is Monday.
         
-        return `<div>${date.toLocaleDateString(this.locale, {weekday: 'short'})}</div>`;
-      }).join("");
-    }
+      return `<div>${date.toLocaleDateString(this.locale, {weekday: 'short'})}</div>`;
+    }).join("");
+  }
   
-    selectorTemplate() {
-      if (!this.isCalendarOpen) {return '';}
-      const monthNameFrom = this.from.toLocaleString(this.locale, {month: 'long'});
-      const dateFromCopy = new Date(this.from);
-      const monthNameNext = new Date(dateFromCopy.setMonth(dateFromCopy.getMonth() + 1)).toLocaleDateString(this.locale, {month: 'long'});
+  selectorTemplate() {
+    if (!this.isCalendarOpen) {return '';}
+    const monthNameFrom = this.from.toLocaleString(this.locale, {month: 'long'});
+    const dateFromCopy = new Date(this.from);
+    const monthNameNext = new Date(dateFromCopy.setMonth(dateFromCopy.getMonth() + 1)).toLocaleDateString(this.locale, {month: 'long'});
   
-      return `
-        <div class="rangepicker__selector-arrow"></div>
-        <div class="rangepicker__selector-control-left"></div>
-        <div class="rangepicker__selector-control-right"></div>
-        <div class="rangepicker__calendar">
-          <div class="rangepicker__month-indicator">
-            <time datetime="${monthNameFrom}">${monthNameFrom}</time>
-          </div>
-          <div class="rangepicker__day-of-week">
-            ${this.getDayNames()}
-          </div>
-          <div class="rangepicker__date-grid">
-          ${this.getMonthCells(this.from)}
-          </div>
+    return `
+      <div class="rangepicker__selector-arrow"></div>
+      <div class="rangepicker__selector-control-left"></div>
+      <div class="rangepicker__selector-control-right"></div>
+      <div class="rangepicker__calendar">
+        <div class="rangepicker__month-indicator">
+          <time datetime="${monthNameFrom}">${monthNameFrom}</time>
         </div>
-        <div class="rangepicker__calendar">
-          <div class="rangepicker__month-indicator">
-            <time datetime="${monthNameNext}">${monthNameNext}</time>
-          </div>
-          <div class="rangepicker__day-of-week">
-            ${this.getDayNames()}
-          </div>
-          <div class="rangepicker__date-grid">
-            ${this.getMonthCells(this.to)}
-          </div>
-        </div>`;
-    }
+        <div class="rangepicker__day-of-week">
+          ${this.getDayNames()}
+        </div>
+        <div class="rangepicker__date-grid">
+        ${this.getMonthCells(this.from)}
+        </div>
+      </div>
+      <div class="rangepicker__calendar">
+        <div class="rangepicker__month-indicator">
+          <time datetime="${monthNameNext}">${monthNameNext}</time>
+        </div>
+        <div class="rangepicker__day-of-week">
+          ${this.getDayNames()}
+        </div>
+        <div class="rangepicker__date-grid">
+          ${this.getMonthCells(this.to)}
+        </div>
+      </div>`;
+  }
   
-    inputTemplate() {
-      return `
+  inputTemplate() {
+    return `
       <span data-element="from">${this.selectedDates.from.toLocaleDateString(this.locale)}</span> -
       <span data-element="to">${this.selectedDates.to.toLocaleDateString(this.locale)}</span>`;
-    }
+  }
   
-    template() {
-      return `
+  template() {
+    return `
         <div class="rangepicker">
           <div class="rangepicker__input" data-element="input">${this.inputTemplate()}</div>
           <div class="rangepicker__selector" data-element="selector">${this.selectorTemplate()}</div>
         </div>`;
-    }
+  }
   
-    remove() {
-      document.removeEventListener(CLEAR_FILTERS_EVENT, this.handleClearFilters);
+  remove() {
+    document.removeEventListener(CLEAR_FILTERS_EVENT, this.handleClearFilters);
       this.element?.remove();
       this.subElements = {};
-    }
+  }
   
-    destroy() {
-      this.remove();
-    }
+  destroy() {
+    this.remove();
+  }
 }
   

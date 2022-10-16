@@ -65,13 +65,15 @@ export default class Page {
   }
 
   appendSortableTable() {
+    const {from, to} = RANGE;
+
+    const url = new URL(`${this.API_URL}/orders`, BACKEND_URL);
+
+    this.setUrlParams({url, from, to});
+
     this.sortableTable = new SortableTable(header, {
-      url: `${this.API_URL}/orders`,
+      url,
       isSortLocally: false,
-      urlParams: [
-        {name: 'createdAt_gte', value: RANGE.from},
-        {name: 'createdAt_lte', value: RANGE.to}
-      ]
     });
     
     this.element.append(this.sortableTable.element);
@@ -108,16 +110,31 @@ export default class Page {
     this.updateSortableTable(from, to);
   }
 
-  fetchDataSortableTable(from, to) {
+  setUrlParams({url, from, to, id, order}) {
     const start = 0;
     const end = 30;
-    
-    const url = new URL(`${this.API_URL}/orders`, BACKEND_URL);
 
-    url.searchParams.set('createdAt_gte', from.toLocaleString());
-    url.searchParams.set('createdAt_lte', to.toLocaleString());
+    const sortedElement = header.find(el => el.preSorting) || headerConfig.find(el => el.sortable);
+    const sorted = {
+      id: sortedElement.id,
+      order: sortedElement.order || 'asc',
+    };
+
+    const fromTime = new Date(from.getTime() - (from.getTimezoneOffset() * 60000)).toISOString();
+    const toTime = new Date(to.getTime() - (to.getTimezoneOffset() * 60000)).toISOString();
+
+    url.searchParams.set('_sort', sorted.id);
+    url.searchParams.set('_order', sorted.order);
+    url.searchParams.set('createdAt_gte', fromTime);
+    url.searchParams.set('createdAt_lte', toTime);
     url.searchParams.set('_start', start);
     url.searchParams.set('_end', end);
+  }
+
+  fetchDataSortableTable(from, to) {
+    const url = new URL(`${this.API_URL}/orders`, BACKEND_URL);
+
+    this.setUrlParams({url, from, to});
 
     return fetchJson(url);
   }

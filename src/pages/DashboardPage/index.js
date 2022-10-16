@@ -100,16 +100,23 @@ export default class Page {
     customersChart.append(this.customersChart.element);
   }
 
-  appendSortableTable() {
-    const url = new URL(`${API_URL_DASHBOARD}/bestsellers`, BACKEND_URL);
-    const {from, to} = RANGE;
+  setUrlParams({url, from, to}) {
     const start = 0;
     const end = 30;
 
+    url.searchParams.set('_sort', header.find(el => el.sortable).id);
+    url.searchParams.set('_order', 'asc');
     url.searchParams.set('from', from.toISOString());
     url.searchParams.set('to', to.toISOString());
     url.searchParams.set('_start', start);
     url.searchParams.set('_end', end);
+  }
+
+  appendSortableTable() {
+    const url = new URL(`${API_URL_DASHBOARD}/bestsellers`, BACKEND_URL);
+    const {from, to} = RANGE;
+
+    this.setUrlParams({url, from, to});
 
     this.sortableTable = new SortableTable(header, {
       url,
@@ -123,7 +130,7 @@ export default class Page {
     const element = document.createElement('div');
     element.innerHTML = this.template();
     this.element = element.firstElementChild;
-      
+
     this.subElements = this.getSubElements(this.element);
 
     this.appendRangePicker();
@@ -170,18 +177,10 @@ export default class Page {
     this.switchProgressBar('off');
   }
 
-  fetchDataSortableTable(from, to) {
-    const start = 0;
-    const end = 30;
-    
+  fetchDataSortableTable(from, to) {    
     const url = new URL(`${API_URL_DASHBOARD}/bestsellers`, BACKEND_URL);
 
-    url.searchParams.set('_sort', header.find(el => el.sortable).id);
-    url.searchParams.set('_order', 'asc');
-    url.searchParams.set('from', from.toISOString());
-    url.searchParams.set('to', to.toISOString());
-    url.searchParams.set('_start', start);
-    url.searchParams.set('_end', end);
+    this.setUrlParams({url, from, to});
 
     return fetchJson(url);
   }

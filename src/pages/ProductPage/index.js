@@ -1,6 +1,6 @@
 import {SortableTable} from '@/components';
 import {AddProductPage, MainPage} from '@/pages';
-import { API_URL_DASHBOARD } from '@/utils/settings';
+import {API_URL_REST, BACKEND_URL} from '@/utils/settings';
 
 const header = [
   {
@@ -10,7 +10,7 @@ const header = [
     template: data => {
       return `
         <div class='sortable-table__cell'>
-          <img class="sortable-table-image" alt="Image" src="${data[0].url}">
+          ${data[0]?.url ? '<img class="sortable-table-image" alt="Image" src="' + data[0].url + '">' : ''}
         </div>
       `;
     }
@@ -20,12 +20,6 @@ const header = [
     title: 'Название',
     sortable: true,
     sortType: 'string'
-  },
-  {
-    id: 'quantity',
-    title: 'Количество',
-    sortable: true,
-    sortType: 'number'
   },
   {
     id: 'subcategory',
@@ -43,6 +37,12 @@ const header = [
         </span>
       </div>`;
     }
+  },
+  {
+    id: 'quantity',
+    title: 'Количество',
+    sortable: true,
+    sortType: 'number'
   },
   {
     id: 'price',
@@ -83,9 +83,21 @@ export default class Page {
     `;
   }
 
+  setUrlParams(url) {
+    url.searchParams.set('_embed', 'subcategory.category');
+    url.searchParams.set('_sort', 'title');
+    url.searchParams.set('_order', 'desc');
+    url.searchParams.set('_start', 0);
+    url.searchParams.set('_end', 30);
+  }
+
   appendSortableTable() {
+    const url = new URL(`${API_URL_REST}/products`, BACKEND_URL);
+
+    this.setUrlParams(url);
+
     this.sortableTable = new SortableTable(header, {
-      url: `${API_URL_DASHBOARD}/bestsellers`,
+      url,
       isSortLocally: false
     });
     

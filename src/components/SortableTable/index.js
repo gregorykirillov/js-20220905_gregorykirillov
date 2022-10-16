@@ -19,7 +19,6 @@ export default class SortableTable {
     },
     isSortLocally = false,
     url = '',
-    urlParams = [],
     from = RANGE.from,
     to = RANGE.to,
   } = {}) {
@@ -27,7 +26,6 @@ export default class SortableTable {
     this.isSortLocally = isSortLocally;
     this.sorted = sorted;
     this.url = new URL(url, BACKEND_URL);
-    this.urlParams = urlParams;
     this.from = from;
     this.to = to;
 
@@ -63,15 +61,6 @@ export default class SortableTable {
     if (!this.isSortLocally) {
       this.url.searchParams.set('_sort', this.sorted.id);
       this.url.searchParams.set('_order', this.sorted.order);
-    }
-
-    if (this.urlParams.length) {
-      this.urlParams.forEach(param => {
-        this.url.searchParams.set(param.name, param.value);
-      });
-    } else {
-      this.url.searchParams.set('from', this.from.toISOString());
-      this.url.searchParams.set('to', this.to.toISOString());
     }
 
     this.url.searchParams.set('_start', this.paginationStart);
@@ -114,14 +103,6 @@ export default class SortableTable {
   }
 
   async sortOnServer (id = this.sorted.id, order = this.sorted.order) {
-    if (this.urlParams.length) {
-      this.urlParams.forEach(param => {
-        this.url.searchParams.set(param.name, param.value);
-      });
-    } else {
-      this.url.searchParams.set('from', this.from.toISOString());
-      this.url.searchParams.set('to', this.to.toISOString());
-    }
     this.url.searchParams.set('_sort', id);
     this.url.searchParams.set('_order', order);
 

@@ -32,6 +32,12 @@ export default class ColumnChart {
     
     url.searchParams.set('from', this.range.from.toISOString());
     url.searchParams.set('to', this.range.to.toISOString());
+   
+    // API works not well
+    // https://course-js.javascript.ru/api/rest/orders?createdAt_gte=2022-09-16T15:00:00.000Z&createdAt_lte=2022-10-17T23%3A59%3A59.000Z&_start=0&_end=30&_sort=createdAt&_order=asc
+    // createdAt is 16.09.2022, but response includes 15.09.2022 too.
+    // url.searchParams.set('from', new Date(date.getTime() - (this.range.from.getTimezoneOffset() * 60000)).toISOString());
+    // url.searchParams.set('to', new Date(date.getTime() - (this.range.to.getTimezoneOffset() * 60000)).toISOString());
 
     return fetchJson(url).then(res => res);
   }
