@@ -2,47 +2,7 @@ import {RangePicker, SortableTable} from '@/components';
 
 import fetchJson from '@/utils/fetch-json';
 import { BACKEND_URL, DATE_SELECT_EVENT, RANGE } from '@/utils/settings';
-
-const header = [
-  {
-    id: 'id',
-    title: 'ID',
-    sortable: true,
-    sortType: 'number',
-  },
-  {
-    id: 'user',
-    title: 'Клиент',
-    sortable: true,
-    sortType: 'string',
-  },
-  {
-    id: 'createdAt',
-    title: 'Дата',
-    sortable: true,
-    preSorting: true,
-    order: 'desc',
-    sortType: 'string',
-    template: date => `<div class="sortable-table__cell">
-      ${(new Date(date).toLocaleString('ru', {day: 'numeric', month: 'short', year: 'numeric'}))}
-    </div>`
-  },
-  {
-    id: 'totalCost',
-    title: 'Стоимость',
-    sortable: true,
-    sortType: 'number',
-    template: price => `<div class="sortable-table__cell">
-    ${new Intl.NumberFormat('en-US', {style: 'currency', currency: 'USD', maximumFractionDigits: 0}).format(price)}
-  </div>`
-  },
-  {
-    id: 'delivery',
-    title: 'Статус',
-    sortable: true,
-    sortType: 'number',
-  },
-];
+import headerConfig from './headerConfig';
 
 export default class Page {
   API_URL = 'api/rest';
@@ -59,7 +19,7 @@ export default class Page {
   }
 
   appendRangePicker() {
-    this.rangePicker = new RangePicker(RANGE).element;
+    this.components.rangePicker = new RangePicker(RANGE).element;
 
     this.subElements.rangePicker.append(this.rangePicker);
   }
@@ -71,12 +31,12 @@ export default class Page {
 
     this.setUrlParams({url, from, to});
 
-    this.sortableTable = new SortableTable(header, {
+    this.components.sortableTable = new SortableTable(headerConfig, {
       url,
       isSortLocally: false,
     });
     
-    this.element.append(this.sortableTable.element);
+    this.element.append(this.components.sortableTable.element);
   }
 
   getSubElements() { 
@@ -93,6 +53,7 @@ export default class Page {
     const element = document.createElement('div');
     element.innerHTML = this.template();
     this.element = element.firstElementChild;
+    this.components = {};
       
     this.subElements = this.getSubElements(this.element);
       
@@ -110,11 +71,11 @@ export default class Page {
     this.updateSortableTable(from, to);
   }
 
-  setUrlParams({url, from, to, id, order}) {
+  setUrlParams({url, from, to}) {
     const start = 0;
     const end = 30;
 
-    const sortedElement = header.find(el => el.preSorting) || headerConfig.find(el => el.sortable);
+    const sortedElement = headerConfig.find(el => el.preSorting) || headerConfig.find(el => el.sortable);
     const sorted = {
       id: sortedElement.id,
       order: sortedElement.order || 'asc',
@@ -140,23 +101,27 @@ export default class Page {
   }
 
   async updateSortableTable(from, to) {
-    this.sortableTable.element.firstElementChild.classList.add('sortable-table_loading');
+    const {sortableTable} = this.subElements;
+    sortableTable.element.firstElementChild.classList.add('sortable-table_loading');
     
     const data = await this.fetchDataSortableTable(from, to);   
     
-    this.sortableTable.setData(data);
-    this.sortableTable.updateData();
-    this.sortableTable.element.firstElementChild.classList.remove('sortable-table_loading');
+    sortableTable.setData(data);
+    sortableTable.updateData();
+    sortableTable.element.firstElementChild.classList.remove('sortable-table_loading');
   }
 
   setEventListeners() {
     this.element.addEventListener(DATE_SELECT_EVENT, this.handleDateSelect);
   }
 
+  removeComponents() {
+    Object.entries(this.components).forEach(([_, component]) => component.remove());
+  }
+
   remove() {
-    this.element?.remove();
-    this.rangePicker.remove();
-    this.sortableTable.remove();
+    this.element.remove();
+    this.removeComponents();
   }
 
   destroy() {

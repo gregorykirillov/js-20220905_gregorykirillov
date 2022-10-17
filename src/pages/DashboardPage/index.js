@@ -2,65 +2,7 @@ import {RangePicker, SortableTable, ColumnChart} from '@/components';
 
 import fetchJson from '@/utils/fetch-json';
 import { API_URL_DASHBOARD, BACKEND_URL, DATE_SELECT_EVENT, RANGE } from '@/utils/settings';
-
-const header = [
-  {
-    id: 'images',
-    title: 'Фото',
-    sortable: false,
-    template: data => {
-      return `
-        <div class="sortable-table__cell">
-          <img class="sortable-table-image" alt="Image" src="${data[0].url}">
-        </div>
-      `;
-    }
-  },
-  {
-    id: 'title',
-    title: 'Название',
-    sortable: true,
-    sortType: 'string'
-  },
-  {
-    id: 'subcategory',
-    title: 'Категория',
-    sortable: false,
-    template: subcategory => {
-      return `
-      <div class="sortable-table__cell">
-        <span data-tooltip="
-          <div class='sortable-table-tooltip'>
-            <span class='sortable-table-tooltip__category'>${subcategory.category.title}</span> /
-            <b class='sortable-table-tooltip__subcategory'>${subcategory.title}</b>
-          </div>">
-          ${subcategory.title}
-        </span>
-      </div>
-      `;}
-  },
-  {
-    id: 'quantity',
-    title: 'Количество',
-    sortable: true,
-    sortType: 'number'
-  },
-  {
-    id: 'price',
-    title: 'Цена',
-    sortable: true,
-    sortType: 'number',
-    template: price => `<div class="sortable-table__cell">
-      ${new Intl.NumberFormat('en-US', {style: 'currency', currency: 'USD', maximumFractionDigits: 0}).format(price)}
-    </div>`
-  },
-  {
-    id: 'sales',
-    title: 'Продажи',
-    sortable: true,
-    sortType: 'number'
-  },
-];
+import headerConfig from './headerConfig';
 
 export default class Page {
   template() {
@@ -82,29 +24,29 @@ export default class Page {
   }
 
   appendRangePicker() {
-    this.rangePicker = new RangePicker(RANGE).element;
+    this.components.rangePicker = new RangePicker(RANGE);
 
-    this.subElements.rangePicker.append(this.rangePicker);
+    this.subElements.rangePicker.append(this.components.rangePicker.element);
   }
 
   appendColumnCharts() {
     const {from, to} = RANGE;
     const {ordersChart, salesChart, customersChart} = this.subElements;
 
-    this.ordersChart = new ColumnChart({ url: `${API_URL_DASHBOARD}/orders`, range: { from, to }, label: 'Заказы', link: '#' });
-    this.salesChart = new ColumnChart({ url: `${API_URL_DASHBOARD}/sales`, range: { from, to }, label: 'Продажи', formatHeading: price => new Intl.NumberFormat('en-US', {style: 'currency', currency: 'USD', maximumFractionDigits: 0}).format(price)});
-    this.customersChart = new ColumnChart({ url: `${API_URL_DASHBOARD}/customers`, range: { from, to }, label: 'Клиенты' });
+    this.components.ordersChartEl = new ColumnChart({ url: `${API_URL_DASHBOARD}/orders`, range: { from, to }, label: 'Заказы', link: '#' });
+    this.components.salesChartEl = new ColumnChart({ url: `${API_URL_DASHBOARD}/sales`, range: { from, to }, label: 'Продажи', formatHeading: price => new Intl.NumberFormat('en-US', {style: 'currency', currency: 'USD', maximumFractionDigits: 0}).format(price)});
+    this.components.customersChartEl = new ColumnChart({ url: `${API_URL_DASHBOARD}/customers`, range: { from, to }, label: 'Клиенты' });
 
-    ordersChart.append(this.ordersChart.element);
-    salesChart.append(this.salesChart.element);
-    customersChart.append(this.customersChart.element);
+    ordersChart.append(this.components.ordersChartEl.element);
+    salesChart.append(this.components.salesChartEl.element);
+    customersChart.append(this.components.customersChartEl.element);
   }
 
   setUrlParams({url, from, to}) {
     const start = 0;
     const end = 30;
 
-    url.searchParams.set('_sort', header.find(el => el.sortable).id);
+    url.searchParams.set('_sort', headerConfig.find(el => el.sortable).id);
     url.searchParams.set('_order', 'asc');
     url.searchParams.set('from', from.toISOString());
     url.searchParams.set('to', to.toISOString());
@@ -118,25 +60,26 @@ export default class Page {
 
     this.setUrlParams({url, from, to});
 
-    this.sortableTable = new SortableTable(header, {
+    this.components.sortableTable = new SortableTable(headerConfig, {
       url,
       isSortLocally: true
     });
     
-    this.subElements.sortableTable.append(this.sortableTable.element);
+    this.subElements.sortableTable.append(this.components.sortableTable.element);
   }
 
   render() {
     const element = document.createElement('div');
     element.innerHTML = this.template();
     this.element = element.firstElementChild;
+    this.components = {};
 
     this.subElements = this.getSubElements(this.element);
 
     this.appendRangePicker();
     this.appendColumnCharts();
     this.appendSortableTable();
-      
+
     this.setEventListeners();
       
     return this.element;
@@ -165,12 +108,13 @@ export default class Page {
   handleDateSelect = async (event) => {
     this.switchProgressBar('on');
     const {detail: {from, to}} = event;
+    const {ordersChart, salesChart, customersChart} = this.subElements;
     
     const promises = [
       this.updateSortableTable(from, to),
-      this.ordersChart.update(from, to),
-      this.salesChart.update(from, to),
-      this.customersChart.update(from, to),
+      ordersChart.update(from, to),
+      salesChart.update(from, to),
+      customersChart.update(from, to),
     ];
 
     await Promise.allSettled(promises);
@@ -186,26 +130,28 @@ export default class Page {
   }
 
   async updateSortableTable(from, to) {
-    this.sortableTable.element.firstElementChild.classList.add('sortable-table_loading');
+    const {sortableTable} = this.subElements;
+
+    sortableTable.element.firstElementChild.classList.add('sortable-table_loading');
     
     const data = await this.fetchDataSortableTable(from, to);
     
-    this.sortableTable.setData(data);
-    this.sortableTable.updateData();
-    this.sortableTable.element.firstElementChild.classList.remove('sortable-table_loading');
+    sortableTable.setData(data);
+    sortableTable.updateData();
+    sortableTable.element.firstElementChild.classList.remove('sortable-table_loading');
   }
 
   setEventListeners() {
     this.element.addEventListener(DATE_SELECT_EVENT, this.handleDateSelect);
   }
 
+  removeComponents() {
+    Object.entries(this.components).forEach(([_, component]) => component.remove());
+  }
+
   remove() {
-    this.rangePicker.remove();
-    this.sortableTable.remove();
-    this.ordersChart.remove();
-    this.salesChart.remove();
-    this.customersChart.remove();
     this.element.remove();
+    this.removeComponents();
   }
 
   destroy() {

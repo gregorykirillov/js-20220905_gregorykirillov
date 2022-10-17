@@ -103,11 +103,10 @@ export default class SortableTable {
   }
 
   async sortOnServer (id = this.sorted.id, order = this.sorted.order) {
-    this.url.searchParams.set('_sort', id);
-    this.url.searchParams.set('_order', order);
-
     const end = this.paginationStart ? this.paginationStart : this.paginationStart + this.PAGINATION_COUNT;
 
+    this.url.searchParams.set('_sort', id);
+    this.url.searchParams.set('_order', order);
     this.url.searchParams.set('_start', 0);
     this.url.searchParams.set('_end', end);
 

@@ -1,72 +1,7 @@
 import {SortableTable} from '@/components';
 import {AddProductPage, MainPage} from '@/pages';
 import {API_URL_REST, BACKEND_URL} from '@/utils/settings';
-
-const header = [
-  {
-    id: 'images',
-    title: 'Фото',
-    sortable: false,
-    template: data => {
-      return `
-        <div class='sortable-table__cell'>
-          ${data[0]?.url ? '<img class="sortable-table-image" alt="Image" src="' + data[0].url + '">' : ''}
-        </div>
-      `;
-    }
-  },
-  {
-    id: 'title',
-    title: 'Название',
-    sortable: true,
-    sortType: 'string'
-  },
-  {
-    id: 'subcategory',
-    title: 'Категория',
-    sortable: false,
-    template: subcategory => {
-      return `
-      <div class="sortable-table__cell">
-        <span data-tooltip="
-          <div class='sortable-table-tooltip'>
-            <span class='sortable-table-tooltip__category'>${subcategory.category.title}</span> /
-            <b class='sortable-table-tooltip__subcategory'>${subcategory.title}</b>
-          </div>">
-          ${subcategory.title}
-        </span>
-      </div>`;
-    }
-  },
-  {
-    id: 'quantity',
-    title: 'Количество',
-    sortable: true,
-    sortType: 'number'
-  },
-  {
-    id: 'price',
-    title: 'Цена',
-    sortable: true,
-    sortType: 'number',
-    template: price => `<div class="sortable-table__cell">
-      ${new Intl.NumberFormat('en-US', {style: 'currency', currency: 'USD', maximumFractionDigits: 0}).format(price)}
-    </div>`
-  },
-  {
-    id: 'status',
-    title: 'Статус',
-    sortable: true,
-    sortType: 'number',
-    template: data => {
-      return `
-        <div class='sortable-table__cell'>
-          ${data > 0 ? 'Active' : 'Inactive'}
-        </div>
-      `;
-    }
-  },
-];
+import headerConfig from './headerConfig';
 
 export default class Page {
   date = new Date();
@@ -96,19 +31,20 @@ export default class Page {
 
     this.setUrlParams(url);
 
-    this.sortableTable = new SortableTable(header, {
+    this.components.sortableTable = new SortableTable(headerConfig, {
       url,
       isSortLocally: false
     });
     
     const container = this.element.querySelector('[data-element="productsContainer"]');
-    container.append(this.sortableTable.element);
+    container.append(this.components.sortableTable.element);
   }
 
   render() {
     const element = document.createElement('div');
     element.innerHTML = this.template();
     this.element = element.firstElementChild;
+    this.components = {};
 
     this.appendSortableTable();
     this.setEventListeners();
@@ -137,9 +73,13 @@ export default class Page {
     window.history.pushState(null, null, '/products/add');
   }
 
+  removeComponents() {
+    Object.entries(this.components).forEach(([_, component]) => component.remove());
+  }
+
   remove() {
-    this.sortableTable.remove();
-    this.element?.remove();
+    this.element.remove();
+    this.removeComponents();
   }
 
   destroy() {
