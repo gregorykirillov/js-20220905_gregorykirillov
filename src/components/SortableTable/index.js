@@ -167,16 +167,14 @@ export default class SortableTable {
   
   get template() {
     return `
-    <div data-element='productsContainer' class='products-list__container'>
       <div class='sortable-table'>
-      <div data-element='header' class='sortable-table__header sortable-table__row'>
-        ${this.headerTemplate}
-      </div>
-      <div data-element='body' class='sortable-table__body'>
-        ${this.bodyProducts}
-      </div>
-      </div>
-    </div>`;
+        <div data-element='header' class='sortable-table__header sortable-table__row'>
+          ${this.headerTemplate}
+        </div>
+        <div data-element='body' class='sortable-table__body'>
+          ${this.bodyProducts}
+        </div>
+      </div>`;
   }
 
   getArrowSort() {

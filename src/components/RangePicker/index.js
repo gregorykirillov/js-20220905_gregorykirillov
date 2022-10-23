@@ -214,16 +214,16 @@ export default class RangePicker {
   
   template() {
     return `
-        <div class="rangepicker">
-          <div class="rangepicker__input" data-element="input">${this.inputTemplate()}</div>
-          <div class="rangepicker__selector" data-element="selector">${this.selectorTemplate()}</div>
-        </div>`;
+      <div class="rangepicker">
+        <div class="rangepicker__input" data-element="input">${this.inputTemplate()}</div>
+        <div class="rangepicker__selector" data-element="selector">${this.selectorTemplate()}</div>
+      </div>`;
   }
   
   remove() {
     document.removeEventListener(CLEAR_FILTERS_EVENT, this.handleClearFilters);
-      this.element?.remove();
-      this.subElements = {};
+    this.element?.remove();
+    this.subElements = {};
   }
   
   destroy() {

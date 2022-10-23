@@ -1,6 +1,6 @@
 import {SortableList} from '@/components';
 import fetchJson from '@/utils/fetch-json.js';
-import { PRODUCT_SAVED_EVENT, PRODUCT_UPDATED_EVENT } from '@/utils/settings';
+import { NOTIFICATION_EVENT } from '@/utils/settings';
 
 const IMGUR_CLIENT_ID = '28aaa2e823b03b1';
 const IMGUR_URL = 'https://api.imgur.com/3/image';
@@ -64,14 +64,25 @@ export default class ProductForm {
         }
       });
 
-      const eventType = this.modeIsUpdate ? PRODUCT_UPDATED_EVENT : PRODUCT_SAVED_EVENT;
+      const message = this.modeIsUpdate ? 'Продукт успешно обновлён' : 'Продукт успешно сохранен';
       this.element.dispatchEvent(
-        new CustomEvent(eventType, {
+        new CustomEvent(NOTIFICATION_EVENT, {
           bubbles: true,
+          detail: {message},
         })
       );
     } catch (error) {
       console.error(error);
+      
+      this.element.dispatchEvent(
+        new CustomEvent(NOTIFICATION_EVENT, {
+          bubbles: true,
+          detail: {
+            message: 'Ошибка при сохранении продукта',
+            type: 'error'
+          },
+        })
+      );
     }
   }
 
@@ -210,6 +221,7 @@ export default class ProductForm {
     const element = document.createElement('div');
     element.innerHTML = this.template();
     this.element = element.firstElementChild;
+    this.components = {};
     
     this.subElements = this.getSubElements();
     this.setSortableList();
@@ -220,11 +232,11 @@ export default class ProductForm {
   }
 
   getSortableList() {
-    if (this.sortableList) {
-      return this.sortableList;
+    if (this.components.sortableList) {
+      return this.components.sortableList;
     }
 
-    return this.sortableList = new SortableList({
+    return this.components.sortableList = new SortableList({
       items: this.data?.images?.map(image => {
         const element = document.createElement('li');
         element.innerHTML = this.imagesTemplate(image);
@@ -238,7 +250,7 @@ export default class ProductForm {
     this.getSortableList();
 
     const { imageListContainer } = this.subElements;
-    imageListContainer.append(this.sortableList.element);
+    imageListContainer.append(this.components.sortableList.element);
   }
 
   template() {
@@ -368,10 +380,13 @@ export default class ProductForm {
     return res;
   }
 
+  removeComponents() {
+    Object.entries(this.components).forEach(([_, component]) => component.remove());
+  }
+
   remove() {
     this.element?.remove();
-    this.sortableList.remove();
-    this.subElements = {};
+    this.removeComponents();
     this.fileInput = null;
   }
 

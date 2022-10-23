@@ -1,181 +1,172 @@
-import {RangePicker, SortableTable, ColumnChart} from '../../components';
+import {SortableList} from '../../components';
 
 import fetchJson from '../../utils/fetch-json';
-import { API_URL_DASHBOARD, BACKEND_URL, RANGE } from '../../utils/settings';
-
-const header = [
-  {
-    id: 'images',
-    title: 'Фото',
-    sortable: false,
-    template: data => {
-      return `
-        <div class='sortable-table__cell'>
-          <img class='sortable-table-image' alt='Image' src='${data[0].url}'>
-        </div>
-      `;
-    }
-  },
-  {
-    id: 'title',
-    title: 'Название',
-    sortable: true,
-    sortType: 'string'
-  },
-  {
-    id: 'quantity',
-    title: 'Количество',
-    sortable: true,
-    sortType: 'number'
-  },
-  {
-    id: 'price',
-    title: 'Цена',
-    sortable: true,
-    sortType: 'number'
-  },
-  {
-    id: 'status',
-    title: 'Статус',
-    sortable: true,
-    sortType: 'number',
-    template: data => {
-      return `
-        <div class='sortable-table__cell'>
-          ${data > 0 ? 'Active' : 'Inactive'}
-        </div>
-      `;
-    }
-  },
-];
+import { API_URL_REST, BACKEND_URL, NOTIFICATION_EVENT, ORDER_ITEMS_CHANGED } from '../../utils/settings';
 
 export default class Page {
   template() {
     return `
-      <div class='dashboard'>
+      <div class='categories'>
         <div class='content__top-panel'>
-          <h2 class='page-title'>Categories</h2>
-        <div data-element='rangePicker'></div>
+          <h2 class='page-title'>Категории товаров</h2>
         </div>
-        <div data-element='chartsRoot' class='dashboard__charts'>
-          <div data-element='ordersChart' class='dashboard__chart_orders'></div>
-          <div data-element='salesChart' class='dashboard__chart_sales'></div>
-          <div data-element='customersChart' class='dashboard__chart_customers'></div>
-        </div>
-
-        <h3 class='block-title'>Лидеры продаж</h3>
-        <div data-element='sortableTable'></div>
-      </div>`;
+        <p>Подкатегории можно перетаскивать, меняя их порядок внутри своей категории.</p>
+        <div data-element="categoriesContainer"></div>
+      </div>
+    `;
   }
 
-  appendRangePicker() {
-    this.rangePicker = new RangePicker(RANGE).element;
-
-    this.subElements.rangePicker.append(this.rangePicker);
-  }
-
-  appendColumnCharts() {
-    const {from, to} = RANGE;
-    const {ordersChart, salesChart, customersChart} = this.subElements;
-
-    this.ordersChart = new ColumnChart({ url: `${API_URL_DASHBOARD}/orders`, range: { from, to }, label: 'orders', link: '#' });
-    this.salesChart = new ColumnChart({ url: `${API_URL_DASHBOARD}/sales`, range: { from, to }, label: 'sales', formatHeading: data => new Intl.NumberFormat('en-US', {style: 'currency', currency: 'USD', useGrouping: ',', maximumFractionDigits: 0}).format(data)});
-    this.customersChart = new ColumnChart({ url: `${API_URL_DASHBOARD}/customers`, range: { from, to }, label: 'customers' });
-
-    ordersChart.append(this.ordersChart.element);
-    salesChart.append(this.salesChart.element);
-    customersChart.append(this.customersChart.element);
-  }
-
-  appendSortableTable() {
-    this.sortableTable = new SortableTable(header, {
-      url: `${API_URL_DASHBOARD}/bestsellers`,
-      isSortLocally: false
-    });
-    
-    this.subElements.sortableTable.append(this.sortableTable.element);
-  }
-
-  render() {
+  renderCategories() {
     const element = document.createElement('div');
-    element.innerHTML = this.template();
-    this.element = element.firstElementChild;
-    
-    this.subElements = this.getSubElements(this.element);
 
-    this.appendRangePicker();
-    this.appendColumnCharts();
-    this.appendSortableTable();
-    
-    this.setEventListeners();
-  
-    return this.element;
+    element.innerHTML = this.data.map(category => {
+      return `
+        <div class="category category_open" data-id="${category.id}">
+          <header class="category__header">
+            ${category.title}
+          </header>
+          <div class="category__body">
+            <div class="subcategory-list" data-element="subcategoryList">
+            </div>
+          </div>
+        </div>
+      `;}).join('');
+      
+    this.data.map(category => {
+      this.appendCategories(category.subcategories, element, category.id);
+    });
+
+    this.container.append(...element.childNodes);
   }
 
-  getSubElements() { 
-    const res = {};
-    const elements = this.element.querySelectorAll('[data-element]');
+  getData() {
+    const url = new URL(`${API_URL_REST}/categories`, BACKEND_URL);
 
-    for (const subElement of elements) {
-      res[subElement.dataset.element] = subElement;
-    }
-    return res;
-  }
-
-  switchProgressBar(switchType) {
-    if (!this.progressBar) {
-      this.progressBar = document.querySelector('.progress-bar');
-      if (!this.progressBar) {return;}
-    }
-
-    if (switchType === 'on') {this.progressBar.style.display = 'block';}
-    else if (switchType === 'off') {this.progressBar.style.display = 'none';}
-  }
-
-  handleDateSelect = async (event) => {
-    const {detail: {from, to}} = event;
-    
-    this.updateSortableTable(from, to);
-    this.ordersChart.update(from, to);
-    this.salesChart.update(from, to);
-    this.customersChart.update(from, to);
-  }
-
-  fetchDataSortableTable(from, to) {
-    const start = 0;
-    const end = 30;
-    
-    const url = new URL(`${API_URL_DASHBOARD}/bestsellers`, BACKEND_URL);
-
-    url.searchParams.set('from', from.toISOString());
-    url.searchParams.set('to', to.toISOString());
-    url.searchParams.set('_start', start);
-    url.searchParams.set('_end', end);
+    url.searchParams.set('_sort', 'weight');
+    url.searchParams.set('_refs', 'subcategory');
 
     return fetchJson(url);
   }
 
-  async updateSortableTable(from, to) {
-    this.sortableTable.element.firstElementChild.classList.add('sortable-table_loading');
+  async setData() {
+    const data = await this.getData();
     
-    const data = await this.fetchDataSortableTable(from, to);   
+    this.data = data;
+  }
+
+  appendCategories(data, element, id) {
+    this.components.subcategories = new SortableList({
+      items: data.map(subcategory => {
+        const element = document.createElement('li');
+        element.innerHTML = this.categoryRowTemplate(subcategory);
+  
+        return element.firstElementChild;
+      })
+    });
     
-    this.sortableTable.setData(data);
-    this.sortableTable.updateData();
-    this.sortableTable.element.firstElementChild.classList.remove('sortable-table_loading');
+    const el = element.querySelector(`[data-id="${id}"] [data-element="subcategoryList"]`);
+    el.append(this.components.subcategories.element);
+  }
+
+  categoryRowTemplate(subcategory) {
+    return `
+      <li class="categories__sortable-list-item sortable-list__item" data-grab-handle="" data-id="${subcategory.id}">
+        <strong>${subcategory.title}</strong>
+        <span><b>${subcategory.count}</b> products</span>
+      </li>
+    `;
+  }
+
+  async render() {
+    const element = document.createElement('div');
+    element.innerHTML = this.template();
+    this.element = element.firstElementChild;
+    this.components = {};
+
+    this.container = this.element.querySelector('[data-element="categoriesContainer"]');
+
+    await this.setData();
+    this.renderCategories();
+
+    this.setEventListeners();
+
+    return this.element;
+  }
+
+  onClickContainer = (event) => {
+    const header = event.target.closest('header');
+    if (!header) {return;}
+
+    header.closest('.category').classList.toggle('category_open');
+  }
+
+  async sendNewData(data) {
+    try {
+      const url = new URL(`${API_URL_REST}/subcategories`, BACKEND_URL);
+
+      await fetchJson(url, {
+        method: "PATCH",
+        body: JSON.stringify(data),
+        headers: {
+          "Content-Type": "Application/json",
+        }
+      });
+
+      this.element.dispatchEvent(
+        new CustomEvent(NOTIFICATION_EVENT, {
+          bubbles: true,
+          detail: {
+            message: 'Категории успешно сохранены',
+          },
+        })
+      );
+    } catch (error) {
+      console.error(error);
+      this.element.dispatchEvent(
+        new CustomEvent(NOTIFICATION_EVENT, {
+          bubbles: true,
+          detail: {
+            message: 'Ошибка при сохранении категорий',
+            type: 'error',
+          },
+        })
+      );
+    }
+  }
+
+  updateData(element) {
+    const data = Array.from(element.childNodes).map((node, ind) => {
+      return {
+        id: node.dataset.id,
+        weight: ind
+      };
+    });
+
+    this.sendNewData(data);
+  }
+
+  onOrderChanged = (event) => {
+    const changedElementId = event.detail;
+    const changedElement = document.querySelector(`[data-id="${changedElementId}"] [data-element="itemList"]`);
+
+    this.updateData(changedElement);
   }
 
   setEventListeners() {
-    this.element.addEventListener('date-select', this.handleDateSelect);
+    this.container.addEventListener('click', this.onClickContainer);
+    this.container.addEventListener(ORDER_ITEMS_CHANGED, this.onOrderChanged);
+  }
+
+  removeComponents() {
+    Object.entries(this.components).forEach(([_, component]) => component.remove());
   }
 
   remove() {
     this.element?.remove();
-    this.removeEventListeners();
+    this.removeComponents();
   }
 
   destroy() {
     this.remove();
-    this.removeEventListeners();
   }
 }

@@ -1,7 +1,7 @@
 import {AddProductPage, CategoriesPage, DashboardPage, ProductPage, SalesPage} from '@/pages';
 import { Notification, Tooltip } from '@/components';
 import {leftBarTemplate} from './templates';
-import { PRODUCT_SAVED_EVENT, PRODUCT_UPDATED_EVENT } from '@/utils/settings';
+import { NOTIFICATION_EVENT } from '@/utils/settings';
 
 export default class Page {
   constructor() {
@@ -17,13 +17,14 @@ export default class Page {
   async render() {
     const element = document.createElement('div');
     element.innerHTML = leftBarTemplate();
+    this.components = {};
     document.body.append(element.firstElementChild);
 
     this.element = element.firstElementChild;
     this.content = document.querySelector('#content');
   
-    const tooltip = new Tooltip();
-    tooltip.initialize();
+    this.components.tooltip = new Tooltip();
+    this.components.tooltip.initialize();
 
     const renderedPage = await this.renderPage();
     this.content.append(renderedPage);
@@ -48,23 +49,21 @@ export default class Page {
     document.querySelector('.sidebar__nav').addEventListener('click', this.handleChangePage);
     document.querySelector('button.sidebar__toggler').addEventListener('click', this.handleCollapseSidebar);
     
-    document.addEventListener(PRODUCT_UPDATED_EVENT, this.handleProduct);
-    document.addEventListener(PRODUCT_SAVED_EVENT, this.handleProduct);
+    document.addEventListener(NOTIFICATION_EVENT, this.handleNotifications);
 
     window.addEventListener('load', this.handleLoaded);
   }
 
-  handleProduct = (event) => {
-    let notify = '';
-    if (event.type === PRODUCT_SAVED_EVENT) {
-      notify = new Notification('Продукт успешно создан', {duration: 2000});
-    } else if (event.type === PRODUCT_UPDATED_EVENT) {
-      notify = new Notification('Продукт успешно сохранен', {duration: 2000});
-    }
+  handleNotifications = (event) => {
+    const {message, type} = event.detail;
 
-    notify.show();
+    this.components.notification = new Notification(message, {
+      type,
+      duration: 2000,
+    });
+    this.components.notification.show();
 
-    document.body.append(notify.element);
+    document.body.append(this.components.notification.element);
   }
 
   handleLoaded = () => {
@@ -125,6 +124,7 @@ export default class Page {
     const pageButton = event.target.closest('[data-page]');
     if (!pageButton) {
       this.switchProgressBar('off');
+      
       return;
     }
 
@@ -145,7 +145,7 @@ export default class Page {
       '/dashboard': DashboardPage,
       '/products': ProductPage,
       '/products/': AddProductPage,
-      // '/categories': CategoriesPage,
+      '/categories': CategoriesPage,
       '/sales': SalesPage,
     };
     const path =
@@ -154,5 +154,15 @@ export default class Page {
         : window.location.pathname;
 
     return pages[path];
+  }
+
+  removeComponents() {
+    Object.entries(this.components).forEach(([_, component]) => component.remove());
+  }
+
+  remove() {
+    this.element.remove();
+    this.element = null;    
+    this.removeComponents();
   }
 }

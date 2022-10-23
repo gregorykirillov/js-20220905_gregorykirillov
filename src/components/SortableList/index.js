@@ -1,3 +1,5 @@
+import { ORDER_ITEMS_CHANGED } from "@/utils/settings";
+
 export default class SortableList {
   constructor({items = []}) {
     this.items = items;
@@ -9,6 +11,7 @@ export default class SortableList {
   
     this.element = this.template();
     this.element.append(...this.items);
+    this.parentId = null;
   
     this.setEventListeners();
   }
@@ -40,6 +43,14 @@ export default class SortableList {
       this.placeholder.replaceWith(this.draggingElement);
   
       document.removeEventListener('pointermove', this.handleDrag);
+      const parentId = this.draggingElement.parentElement.closest('[data-id]')?.dataset?.id;
+
+      if (parentId) {
+        this.element.dispatchEvent(new CustomEvent(ORDER_ITEMS_CHANGED, {
+          bubbles: true,
+          detail: parentId,
+        }));
+      }
     }
   
     createPlaceholder() {
@@ -81,6 +92,8 @@ export default class SortableList {
   
       this.placePlaceholder();
       
+      const elementParentId = this.draggingElement.parentElement.closest('[data-id]')?.dataset?.id;
+      if (elementParentId !== null) {this.parentId = elementParentId;}
       document.addEventListener('pointermove', this.handleDrag);
     }
   
@@ -92,7 +105,8 @@ export default class SortableList {
       const neighborhood = document.elementFromPoint(event.clientX, event.clientY)?.closest('li');
       this.draggingElement.style.visibility = 'visible';
       
-      if (!neighborhood) {return;}
+      const neighborhoodParent = neighborhood?.parentElement.closest('[data-id]')?.dataset?.id;
+      if (!neighborhood || neighborhoodParent !== this.parentId) {return;}
       const neighborhoodSizes = neighborhood.getBoundingClientRect();
   
       if (event.clientY - neighborhoodSizes.top < neighborhoodSizes.height / 2) {

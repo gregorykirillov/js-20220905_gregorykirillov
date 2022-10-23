@@ -14,14 +14,15 @@ export default class Page {
         <h1 class="page-title">Продажи</h1>
         <div data-element="rangePicker"></div>
       </div>
+      <div data-element="sortableTable"></div>
     </div>
     `;
   }
 
   appendRangePicker() {
-    this.components.rangePicker = new RangePicker(RANGE).element;
+    this.components.rangePicker = new RangePicker(RANGE);
 
-    this.subElements.rangePicker.append(this.rangePicker);
+    this.subElements.rangePicker.append(this.components.rangePicker.element);
   }
 
   appendSortableTable() {
@@ -36,7 +37,7 @@ export default class Page {
       isSortLocally: false,
     });
     
-    this.element.append(this.components.sortableTable.element);
+    this.subElements.sortableTable.append(this.components.sortableTable.element);
   }
 
   getSubElements() { 
@@ -54,7 +55,7 @@ export default class Page {
     element.innerHTML = this.template();
     this.element = element.firstElementChild;
     this.components = {};
-      
+
     this.subElements = this.getSubElements(this.element);
       
     this.appendRangePicker();
@@ -102,6 +103,7 @@ export default class Page {
 
   async updateSortableTable(from, to) {
     const {sortableTable} = this.subElements;
+
     sortableTable.element.firstElementChild.classList.add('sortable-table_loading');
     
     const data = await this.fetchDataSortableTable(from, to);   

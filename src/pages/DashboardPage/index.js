@@ -33,13 +33,13 @@ export default class Page {
     const {from, to} = RANGE;
     const {ordersChart, salesChart, customersChart} = this.subElements;
 
-    this.components.ordersChartEl = new ColumnChart({ url: `${API_URL_DASHBOARD}/orders`, range: { from, to }, label: 'Заказы', link: '#' });
-    this.components.salesChartEl = new ColumnChart({ url: `${API_URL_DASHBOARD}/sales`, range: { from, to }, label: 'Продажи', formatHeading: price => new Intl.NumberFormat('en-US', {style: 'currency', currency: 'USD', maximumFractionDigits: 0}).format(price)});
-    this.components.customersChartEl = new ColumnChart({ url: `${API_URL_DASHBOARD}/customers`, range: { from, to }, label: 'Клиенты' });
+    this.components.ordersChart = new ColumnChart({ url: `${API_URL_DASHBOARD}/orders`, range: { from, to }, label: 'Заказы', link: '#' });
+    this.components.salesChart = new ColumnChart({ url: `${API_URL_DASHBOARD}/sales`, range: { from, to }, label: 'Продажи', formatHeading: price => new Intl.NumberFormat('en-US', {style: 'currency', currency: 'USD', maximumFractionDigits: 0}).format(price)});
+    this.components.customersChart = new ColumnChart({ url: `${API_URL_DASHBOARD}/customers`, range: { from, to }, label: 'Клиенты' });
 
-    ordersChart.append(this.components.ordersChartEl.element);
-    salesChart.append(this.components.salesChartEl.element);
-    customersChart.append(this.components.customersChartEl.element);
+    ordersChart.append(this.components.ordersChart.element);
+    salesChart.append(this.components.salesChart.element);
+    customersChart.append(this.components.customersChart.element);
   }
 
   setUrlParams({url, from, to}) {
@@ -108,7 +108,7 @@ export default class Page {
   handleDateSelect = async (event) => {
     this.switchProgressBar('on');
     const {detail: {from, to}} = event;
-    const {ordersChart, salesChart, customersChart} = this.subElements;
+    const {ordersChart, salesChart, customersChart} = this.components;
     
     const promises = [
       this.updateSortableTable(from, to),
@@ -130,15 +130,15 @@ export default class Page {
   }
 
   async updateSortableTable(from, to) {
-    const {sortableTable} = this.subElements;
+    const {sortableTable} = this.components;
 
-    sortableTable.element.firstElementChild.classList.add('sortable-table_loading');
+    this.subElements.sortableTable.firstElementChild.classList.add('sortable-table_loading');
     
     const data = await this.fetchDataSortableTable(from, to);
     
     sortableTable.setData(data);
     sortableTable.updateData();
-    sortableTable.element.firstElementChild.classList.remove('sortable-table_loading');
+    sortableTable.firstElementChild.classList.remove('sortable-table_loading');
   }
 
   setEventListeners() {

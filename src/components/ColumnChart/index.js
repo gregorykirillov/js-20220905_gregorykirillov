@@ -93,7 +93,7 @@ export default class ColumnChart {
     this.element = el.firstElementChild;
 
     this.subElements = this.getSubElements();
-
+    
     this.data = await this.getNewData();
     this.tableValues = Object.values(this.data);
     this.renderSubElements();
