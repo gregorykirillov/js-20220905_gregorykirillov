@@ -6,6 +6,7 @@
 @import url("../components/SortableTable/style.css");
 @import url("../components/SortableList/style.css");
 @import url("../components/Notification/style.css");
+@import url("../components/DoubleSlider/style.css");
 @import url("../components/RangePicker/style.css");
 @import url("../components/ColumnChart/style.css");
 @import url("../components/Tooltip/style.css");
@@ -14,4 +15,5 @@
 @import url("../pages/DashboardPage/style.css");
 @import url("../pages/MainPage/style.css");
 @import url("../pages/AddProductPage/style.css");
+@import url("../pages/ProductPage/style.css");
 @import url("../pages/CategoriesPage/style.css");
