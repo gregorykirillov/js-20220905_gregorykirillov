@@ -10,5 +10,5 @@ export const NOTIFICATION_EVENT = 'notification-event';
 const date = new Date();
 export const RANGE = {
   from: new Date(date.getFullYear(), date.getMonth() - 1, date.getDate()),
-  to: new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59),
+  to: new Date(date.getFullYear(), date.getMonth(), date.getDate()),
 };

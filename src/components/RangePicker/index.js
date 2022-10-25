@@ -5,7 +5,7 @@ export default class RangePicker {
 
   constructor({
     from = new Date(this.date.getFullYear(), this.date.getMonth() - 1, this.date.getDate()),
-    to = new Date(this.date.getFullYear(), this.date.getMonth(), this.date.getDate(), 23, 59, 59),
+    to = new Date(this.date.getFullYear(), this.date.getMonth(), this.date.getDate()),
   } = {}) {
     const year = from.getFullYear();
     const month = from.getMonth();
@@ -91,8 +91,6 @@ export default class RangePicker {
       } else {
         this.selectedDates.to = date;
       }
-
-      this.selectedDates.to.setHours(23, 59, 59);
         
       this.update();
       this.toggleCalendar();

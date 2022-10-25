@@ -46,10 +46,17 @@ export default class Page {
   }
 
   setUrlParams(url) {
-    url.searchParams.set('_embed', 'subcategory.category');
-    url.searchParams.set('_sort', 'title');
-    url.searchParams.set('_start', 0);
-    url.searchParams.set('_end', 30);
+    const searchParams = this.components?.sortableTable?.searchParams;
+
+    const params = {
+      '_embed': searchParams?.['_embed'] || 'subcategory.category',
+      '_sort': searchParams?.['_sort'] || 'title',
+      '_start': 0,
+      '_end': 30,
+    };
+
+    this.filteringParams = {...this.filteringParams, ...params};
+    this.components.sortableTable?.setSearchParams(this.filteringParams);
 
     Object.entries(this.filteringParams).forEach(([param, value]) => url.searchParams.set(param, value));
   }
@@ -86,6 +93,7 @@ export default class Page {
   setEventListeners() {
     const button = this.element.querySelector('.button-primary');
     button?.addEventListener('click', this.handleAddProduct);
+    
     this.element.addEventListener('range-select', this.handleRangeSelect);
     this.subElements.filterName.addEventListener('input', this.handleChangeName);
     this.subElements.filterStatus.addEventListener('change', this.handleChangeStatus);
@@ -96,8 +104,9 @@ export default class Page {
     const url = new URL(`${API_URL_REST}/products`, BACKEND_URL);
 
     this.filteringParams = {...this.filteringParams, 'title_like': value};
-    this.setUrlParams(url);
+    this.components.sortableTable?.setSearchParams(this.filteringParams);
 
+    this.setUrlParams(url);
     const data = await fetchJson(url);
 
     this.components.sortableTable.setData(data);
@@ -108,9 +117,14 @@ export default class Page {
     const {value} = event.target;
     const url = new URL(`${API_URL_REST}/products`, BACKEND_URL);
 
-    this.filteringParams = {...this.filteringParams, 'status': value};
+    if (value === '') {
+      delete this.filteringParams['status'];
+    } else {
+      this.filteringParams = {...this.filteringParams, 'status': value};
+    }
+    this.components.sortableTable.setSearchParams(this.filteringParams);
+    
     this.setUrlParams(url);
-
     const data = await fetchJson(url);
 
     this.components.sortableTable.setData(data);
@@ -121,9 +135,15 @@ export default class Page {
     const {from, to} = event.detail;
     const url = new URL(`${API_URL_REST}/products`, BACKEND_URL);
 
-    this.filteringParams = {...this.filteringParams, 'price_gte': from, 'price_lte': to};
+    this.filteringParams = {
+      ...this.filteringParams, 
+      ...this.components.sortableTable.searchParams,
+      'price_gte': from,
+      'price_lte': to
+    };
+    this.components.sortableTable.setSearchParams(this.filteringParams);
+   
     this.setUrlParams(url);
-
     const data = await fetchJson(url);
 
     this.components.sortableTable.setData(data);

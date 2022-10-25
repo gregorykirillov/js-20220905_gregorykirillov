@@ -70,6 +70,11 @@ export default class Page {
     const {detail: {from, to}} = event;
     
     this.updateSortableTable(from, to);
+    this.components.sortableTable.setSearchParams({
+      ...this.components.sortableTable.searchParams,
+      'createdAt_gte': new Date(from.getTime() - (from.getTimezoneOffset() * 60000)).toISOString(),
+      'createdAt_lte': new Date(to.getTime() - (to.getTimezoneOffset() * 60000)).toISOString(),
+    });
   }
 
   setUrlParams({url, from, to}) {
@@ -85,12 +90,16 @@ export default class Page {
     const fromTime = new Date(from.getTime() - (from.getTimezoneOffset() * 60000)).toISOString();
     const toTime = new Date(to.getTime() - (to.getTimezoneOffset() * 60000)).toISOString();
 
-    url.searchParams.set('_sort', sorted.id);
-    url.searchParams.set('_order', sorted.order);
-    url.searchParams.set('createdAt_gte', fromTime);
-    url.searchParams.set('createdAt_lte', toTime);
-    url.searchParams.set('_start', start);
-    url.searchParams.set('_end', end);
+    const params = {
+      '_sort': this.components.sortableTable?.searchParams?.['_sort'] || sorted.id,
+      '_order': this.components.sortableTable?.searchParams?.['_order'] || sorted.order,
+      'createdAt_gte': fromTime,
+      'createdAt_lte': toTime,
+      '_start': start,
+      '_end': end
+    };
+
+    Object.entries(params).forEach(([name, value]) => url.searchParams.set(name, value));
   }
 
   fetchDataSortableTable(from, to) {
@@ -103,14 +112,13 @@ export default class Page {
 
   async updateSortableTable(from, to) {
     const {sortableTable} = this.subElements;
-
-    sortableTable.element.firstElementChild.classList.add('sortable-table_loading');
+    sortableTable.firstElementChild.classList.add('sortable-table_loading');
     
-    const data = await this.fetchDataSortableTable(from, to);   
+    const data = await this.fetchDataSortableTable(from, to);
     
-    sortableTable.setData(data);
-    sortableTable.updateData();
-    sortableTable.element.firstElementChild.classList.remove('sortable-table_loading');
+    this.components.sortableTable.setData(data);
+    this.components.sortableTable.updateData();
+    sortableTable.firstElementChild.classList.remove('sortable-table_loading');
   }
 
   setEventListeners() {

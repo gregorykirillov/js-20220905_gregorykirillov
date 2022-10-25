@@ -48,8 +48,8 @@ export default class Page {
 
     url.searchParams.set('_sort', headerConfig.find(el => el.sortable).id);
     url.searchParams.set('_order', 'asc');
-    url.searchParams.set('from', from.toISOString());
-    url.searchParams.set('to', to.toISOString());
+    url.searchParams.set('from', from);
+    url.searchParams.set('to', to);
     url.searchParams.set('_start', start);
     url.searchParams.set('_end', end);
   }
@@ -62,7 +62,8 @@ export default class Page {
 
     this.components.sortableTable = new SortableTable(headerConfig, {
       url,
-      isSortLocally: true
+      isSortLocally: true,
+      needFetchData: false,
     });
     
     this.subElements.sortableTable.append(this.components.sortableTable.element);

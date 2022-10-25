@@ -1,5 +1,5 @@
 import fetchJson from '@/utils/fetch-json';
-import { BACKEND_URL, CLEAR_FILTERS_EVENT, RANGE } from '@/utils/settings';
+import { BACKEND_URL, CLEAR_FILTERS_EVENT } from '@/utils/settings';
 import EmptyPlaceholder from '../EmptyPlaceholder';
 
 export default class SortableTable {
@@ -19,15 +19,15 @@ export default class SortableTable {
     },
     isSortLocally = false,
     url = '',
-    from = RANGE.from,
-    to = RANGE.to,
+    needFetchData = true,
+    searchParams = {},
   } = {}) {
     this.headerConfig = headerConfig;
     this.isSortLocally = isSortLocally;
     this.sorted = sorted;
     this.url = new URL(url, BACKEND_URL);
-    this.from = from;
-    this.to = to;
+    this.needFetchData = needFetchData;
+    this.searchParams = searchParams;
 
     this.render();
   }
@@ -41,7 +41,7 @@ export default class SortableTable {
     if (window.innerHeight + document.documentElement.scrollTop <= document.documentElement.offsetHeight - this.BOTTOM_GAP) {
       return;
     }
-    if (!this.isLoading && !this.allLoaded) {
+    if (!this.isLoading && !this.allLoaded && this.needFetchData) {
       this.setLoading(true);
       const res = await this.getNewData();
       if (res.length === 0) {
@@ -56,21 +56,54 @@ export default class SortableTable {
       this.setLoading(false);
     }
   }
+  
+  setSearchParams(searchParams) {
+    const params = {};
 
-  async getNewData() {
-    if (!this.isSortLocally) {
-      this.url.searchParams.set('_sort', this.sorted.id);
-      this.url.searchParams.set('_order', this.sorted.order);
+    for (const param of this.url.searchParams) {
+      params[param[0]] = param[1];
     }
+
+    if (searchParams) {
+      Object.entries(searchParams).forEach(([name, value]) => {
+        params[name] = value;
+      });
+    }
+    
+    this.searchParams = params;
+  }
+
+  setUrlParams(url) {
+    Object.entries(this.searchParams).forEach(([name, value]) => {
+      url.searchParams.set(name, value);
+    });
+  }
+
+  async getNewData() { 
+    this.setUrlParams(this.url);
 
     this.url.searchParams.set('_start', this.paginationStart);
     this.url.searchParams.set('_end', this.paginationStart + this.PAGINATION_COUNT);
+      
+    this.setSearchParams({
+      '_start': this.paginationStart,
+      '_end': this.paginationStart + this.PAGINATION_COUNT,
+    });
+    
     const data = await fetchJson(this.url);
 
     return data;
   }
 
   setLoading(flag) {
+    if (flag) {
+      const element = document.createElement('div');
+      element.innerHTML = '<div data-element="loading" class="loading-line sortable-table__loading-line"></div>';
+
+      this.subElements.body.parentNode.append(element.firstElementChild);
+    } else {
+      this.subElements.loading.remove();
+    }
     this.isLoading = flag;
   }
 
@@ -105,10 +138,20 @@ export default class SortableTable {
   async sortOnServer (id = this.sorted.id, order = this.sorted.order) {
     const end = this.paginationStart ? this.paginationStart : this.paginationStart + this.PAGINATION_COUNT;
 
-    this.url.searchParams.set('_sort', id);
-    this.url.searchParams.set('_order', order);
-    this.url.searchParams.set('_start', 0);
-    this.url.searchParams.set('_end', end);
+    const params = {
+      '_sort': id,
+      '_order': order,
+      '_start': 0,
+      '_end': end,
+    };
+
+    Object.entries(params).forEach(([name, value]) => {
+      this.url.searchParams.set(name, value);
+    });
+    
+    this.setSearchParams({...this.searchParams, ...params});
+
+    this.setUrlParams(this.url);
 
     const res = await fetchJson(this.url);
     this.setData(res);
@@ -173,6 +216,7 @@ export default class SortableTable {
         </div>
         <div data-element='body' class='sortable-table__body'>
           ${this.bodyProducts}
+          <div data-element="loading" class="loading-line sortable-table__loading-line"></div>
         </div>
       </div>`;
   }
@@ -189,7 +233,7 @@ export default class SortableTable {
     const element = document.createElement('div');
     element.innerHTML = this.template;
     this.element = element.firstElementChild;
-
+    
     if (this.isSortLocally) {
       const data = await this.getNewData();
       
@@ -198,11 +242,17 @@ export default class SortableTable {
     } else {
       await this.sortOnServer();
     }
+
+    this.setLoading(true);
     
     this.subElements = this.getSubElements();
     this.updateData();
     this.setEventListeners();
     this.setPaginationStart(this.paginationStart + this.PAGINATION_COUNT);
+
+    this.setSearchParams();
+
+    this.setLoading(false);
   }
 
   setData(data) {
